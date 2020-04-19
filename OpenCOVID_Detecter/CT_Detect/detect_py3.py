@@ -109,6 +109,6 @@ if __name__ == "__main__":
         numpy_CAM = get_CAM(model, support_data)
         numpy_CAM = numpy_CAM * 255
 
-        # TODO: try to pass back the dir, rather than set same manually
+        # TODO: use socket to pass parameters, rather than files.
         CAM_path = '../__cache/__cache_CAM.npy'
         np.save(dirPath + '/' + CAM_path, numpy_CAM)
