@@ -8,11 +8,15 @@ import vtk
 import qt
 import ctk
 import slicer
-import numpy as np
 from slicer.ScriptedLoadableModule import *
 from slicer.util import *
 import logging
+
+import numpy as np
 import subprocess
+import socket
+import sys
+import pickle
 
 #
 # CT_Detect
@@ -38,7 +42,73 @@ class CT_Detect(ScriptedLoadableModule):
 #
 
 
+class Client():
+    """Subprocess and communication"""
+
+    def __init__(self):
+
+        # Set up a subprocess
+
+        # Prepare the environment
+        if 'PYTHONPATH' in os.environ:
+            del os.environ['PYTHONPATH']
+        if 'PYTHONHOME' in os.environ:
+            del os.environ['PYTHONHOME']
+        if 'PYTHONNOUSERSITE' in os.environ:
+            del os.environ['PYTHONNOUSERSITE']
+
+        tmp_interpreterPath = r'E:\Anaconda3\envs\COVID\python.exe'
+        scriptPath = "./server_py3.py"
+        dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
+        absScriptPath = dirPath + '/' + scriptPath
+        cmd_work_path = r'D:\Codes\_Projects\Covid\OCD_Slicer_Plugin'
+
+        self.proc = subprocess.Popen(
+            [tmp_interpreterPath, absScriptPath],        # TODO: add mask path.
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
+            cwd=cmd_work_path,
+            bufsize=1,
+            shell=False,
+        )
+        logging.info(self.proc.pid)
+
+        # open the socket
+        time.sleep(1)
+
+        self.serverAddress = ('127.0.0.1', 31500)
+        self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverSocket.connect(self.serverAddress)
+
+    def __del__(self):
+        self.serverSocket.close()
+        self.proc.terminate()
+
+    def solve(self, inputData):
+        # TODO: pack the data, send by socket,
+        # and depack the return data as return value
+
+        # send data
+        self.serverSocket.send(pickle.dumps(inputData, protocol=2))
+        logging.info("Data sent!")
+
+        # receive data
+        returnData = pickle.loads(self.serverSocket.recv(512000000))
+        logging.info('the data received is', returnData)
+
+        return returnData
+
+    pass
+
+
 class CT_DetectWidget(ScriptedLoadableModuleWidget):
+
+    def __init__(self, parent):
+        ScriptedLoadableModuleWidget.__init__(self, parent)
+
+        # client setup
+        self.client = Client()
+        print("Subprocess launched.")
 
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
@@ -130,6 +200,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         self.onSelect()
 
     def cleanup(self):
+        self.client.__del__()
         pass
 
     def onSelect(self):
@@ -140,8 +211,9 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         logic = CT_DetectLogic()
         enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
         imageThreshold = self.imageThresholdSliderWidget.value
-        logic.run(self.inputSelector.currentNode(
-        ), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
+        logic.run(self.inputSelector.currentNode(),
+                  self.outputSelector.currentNode(),
+                  self.client)
 
 #
 # CT_DetectLogic
@@ -180,84 +252,30 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
             return False
         return True
 
-    def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-        """
-        Run the actual algorithm
-        """
+    def run(self, inputVolume, outputVolume, client):
 
         if not self.isValidInputOutputData(inputVolume, outputVolume):
             slicer.util.errorDisplay(
                 'Input volume is the same as output volume. Choose a different output volume.')
             return False
 
-        logging.info('Processing started')
+        logging.info('Calculation started')
         tic = time.time()
 
         npInputData = arrayFromVolume(inputVolume)
-        npOutputData = self.process(npInputData)
+        npOutputData = client.solve(npInputData)
 
-        outputVolume.CreateDefaultDisplayNodes()
-        updateVolumeFromArray(outputVolume, npOutputData)
+        is_COVID = npOutputData['is_COVID']
+        slice_scores = npOutputData['slice_scores']
+        if is_COVID:
+            numpy_CAM = npOutputData['numpy_CAM']
+            outputVolume.CreateDefaultDisplayNodes()
+            updateVolumeFromArray(outputVolume, numpy_CAM)
 
         toc = time.time()
-        logging.info('Processing completed')
+        logging.info('Calculation completed. Time:' + str(toc - tic))
 
         return True
-
-    def process(self, npInputData):
-        """
-        Use a subprocess to cauculate the result
-        """
-
-        # Prepare the environment
-        if 'PYTHONPATH' in os.environ:
-            del os.environ['PYTHONPATH']
-        if 'PYTHONHOME' in os.environ:
-            del os.environ['PYTHONHOME']
-        if 'PYTHONNOUSERSITE' in os.environ:
-            del os.environ['PYTHONNOUSERSITE']
-
-        # TODO: pack a python environment and set the interpreter path to it
-        tmp_interpreterPath = r'E:\Anaconda3\envs\COVID\python.exe'
-        scriptPath = "./detect_py3.py"
-        imagePath = '../__cache/__cache_input.npy'
-        maskPath = ''
-        workPath = r'D:\Codes\_Projects\Covid\OCD_Slicer_Plugin\OpenCOVID_Detecter\CT_Detect'
-
-        dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
-        absScriptPath = dirPath + '/' + scriptPath
-        currentEncoding = 'utf-8'
-        absImagePath = dirPath + '/' + imagePath
-
-        # TODO: add the maskpath while segment network is ready
-        # and don't forget to prepare the mask before diagnose
-        if isinstance(npInputData, np.ndarray):
-            np.save(absImagePath, npInputData)
-        else:
-            return False
-
-        # Start calculate
-        proc = subprocess.Popen(
-            [tmp_interpreterPath, absScriptPath,
-             '--image_path', absImagePath],        # TODO: add mask path.
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            bufsize=1,
-            shell=True,
-        )
-
-        while proc.poll() is None:
-            r = proc.stdout.readline().decode(currentEncoding)
-            logging.info(r)
-
-        if proc.poll() != 0:
-            err = proc.stderr.read().decode(currentEncoding)
-            logging.error(err)
-
-        # Load output data
-        outputPath = '../__cache/__cache_CAM.npy'
-        absOutputPath = dirPath + '/' + outputPath
-        return np.load(absOutputPath)
 
 
 class CT_DetectTest(ScriptedLoadableModuleTest):

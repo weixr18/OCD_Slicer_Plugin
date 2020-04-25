@@ -4,18 +4,14 @@ import os
 import sys
 import time
 
-import cv2
 import torch
 import numpy as np
 import torch.nn as nn
 from torch.autograd import Variable
-from torch.utils.data import DataLoader
 import argparse
-import matplotlib.pyplot as plt
 
-from Utils.data_py3 import *
-from Utils.net2d_py3 import resnet152
-from grad_cam_py3 import GradCam, preprocess_image
+from .net2d_py3 import resnet152
+from .grad_cam_py3 import GradCam, preprocess_image
 
 
 MODEL_PATH = '../model/classify_model.pt'
@@ -84,31 +80,39 @@ def get_args():
     return args
 
 
-if __name__ == "__main__":
-
-    # Prepare data and model
-    args = get_args()
-    image_path = args.image_path
-    dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
-    mask_path = dirPath + '/' + args.mask_path
-    numpy_image = concatenate_image_and_mask(image_path, mask_path)
+def process(numpy_image):
+    dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-2])
     model_path = dirPath + '/' + MODEL_PATH
     model = load_classify_model(model_path)
     CAM = None
 
-    # Predicrt scores
+    # Predict scores
     prediction = classify_CT(model, numpy_image)
     slice_scores = np.argmax(prediction, axis=1)
-    print(image_path.split('/')[-1], np.sort(slice_scores)
-          [-3:], np.argsort(slice_scores)[-3:])
+    print("------------------Scoring done!------------------")
 
     # CAM pictures
     mean_score = np.mean(np.sort(slice_scores)[-3:])
-    if mean_score > 0.5:
+    is_COVID = (mean_score > 0.5)
+    if is_COVID:
         support_data = numpy_image[np.argsort(slice_scores)[-3:]]
         numpy_CAM = get_CAM(model, support_data)
         numpy_CAM = numpy_CAM * 255
 
-        # TODO: use socket to pass parameters, rather than files.
-        CAM_path = '../__cache/__cache_CAM.npy'
-        np.save(dirPath + '/' + CAM_path, numpy_CAM)
+        return {
+            "is_COVID": is_COVID,
+            "numpy_CAM": numpy_CAM,
+            "slice_scores": slice_scores,
+        }
+    else:
+        return {
+            "is_COVID": is_COVID,
+            "slice_scores": slice_scores,
+        }
+
+
+if __name__ == "__main__":
+
+    # TODO: do nothing in this main.
+    # everything else should be done in server_py3.py
+    pass

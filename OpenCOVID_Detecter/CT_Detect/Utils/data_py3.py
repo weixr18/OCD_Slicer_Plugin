@@ -2,7 +2,6 @@
 import glob
 import torch
 import numpy as np
-import SimpleITK as sitk
 from PIL import Image
 import torchvision.transforms as transforms
 
@@ -33,29 +32,7 @@ def get_path(np_image_root, np_mask_lung_root):
     return np_images, masks
 
 
-def concatenate_image_and_mask(image_path, mask_path, padding=35):
-    """get concatenated image and mask via path"""
-    # load video into a tensor
-    if image_path[-1] == '\n':
-        image_path = image_path[:-1]
-
-    # load raw data
-    if mask_path.split('.')[-1] == 'nii':
-        sitk_mask = sitk.ReadImage(mask_path)
-        np_mask = sitk.GetArrayFromImage(sitk_mask)
-    elif mask_path.split('.')[-1] == 'npy':
-        np_mask = np.load(mask_path)
-    else:
-        raise IOError("Incorrect input mask file suffix.")
-
-    if image_path.split('.')[-1] == 'nii':
-        sitk_image = sitk.ReadImage(image_path)
-        np_image = sitk.GetArrayFromImage(sitk_image)
-    elif image_path.split('.')[-1] == 'npy':
-        np_image = np.load(image_path)
-    else:
-        raise IOError("Incorrect input image file suffix.")
-
+def concatenate(np_image, np_mask, padding=35):
     # reshape
     np_image = np_image[-300:-40, :, :]
     np_mask = np_mask[-300:-40, :np_image.shape[1], :np_image.shape[2]]
@@ -84,3 +61,21 @@ def concatenate_image_and_mask(image_path, mask_path, padding=35):
     tshape = sliced_image.shape
     sliced_image.resize([tshape[1], tshape[0], tshape[2], tshape[3]])
     return sliced_image
+
+
+@temporary
+def concatenate_image_and_mask(np_image, mask_path, padding=35):
+    """get concatenated image and mask """
+
+    # load raw data
+    """
+    if mask_path.split('.')[-1] == 'nii':
+        sitk_mask = sitk.ReadImage(mask_path)
+        np_mask = sitk.GetArrayFromImage(sitk_mask)
+    elif mask_path.split('.')[-1] == 'npy':
+        np_mask = np.load(mask_path)
+    else:
+        raise IOError("Incorrect input mask file suffix.")
+
+    return concatenate(np_image, np_mask)
+    """

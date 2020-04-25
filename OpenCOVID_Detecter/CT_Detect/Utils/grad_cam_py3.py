@@ -1,15 +1,12 @@
 # python 3.6
-import glob
-import argparse
 import cv2
 import os
 import numpy as np
 import torch
-import SimpleITK as sitk
 from torch.autograd import Function
 from torchvision import models
-from Utils.net2d_py3 import vgg19_bn, densenet161, vgg16, vgg19, resnet152
-import matplotlib.pyplot as plt
+from .net2d_py3 import resnet152
+
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -254,64 +251,5 @@ def model_get(path):
 
 
 if __name__ == '__main__':
-    args = get_args()
 
-    # Can work with any model, but it assumes that the model has a
-    # feature method, and a classifier method,
-    grad_cam = GradCam(model=model_get(args.model_path),
-                       target_layer_names=["6"], use_cuda=args.use_cuda)
-    gb_model = GuidedBackpropReLUModel(
-        model=model_get(args.model_path), use_cuda=args.use_cuda)
-    o_path = args.output_path
-    i_path = args.mask_path
-    i_path2 = args.image_path
-
-    os.makedirs(o_path, exist_ok=True)
-    for names in os.listdir(i_path):
-        if names[0] == 'c':
-            continue
-
-        img = sitk.ReadImage('/'.join([i_path2, names]))
-        seg = sitk.ReadImage('/'.join([i_path, names]))
-        V = sitk.GetArrayFromImage(img)
-        M = sitk.GetArrayFromImage(seg)
-
-        M = M[:V.shape[0], :, :]
-        sums = M.sum(1).sum(1)
-        idd = np.where(sums > 0)[0]
-        M = M[idd, :, :]
-        V = V[idd, :, :]
-        V = V[:M.shape[0], :M.shape[1], :M.shape[2]]
-        M = M[:V.shape[0], :V.shape[1], :V.shape[2]]
-
-        CAM_V = []
-        for idx, i in enumerate(range(0, V.shape[0])):
-            data = V[i:i + 1, :, :]
-            data[data > 700] = 700
-            data[data < -1200] = -1200
-            data = data * 255.0 / 1900
-            data = data - data.min()
-            data.resize([data.shape[1], data.shape[2]])
-            img_raw = np.stack([data, data, data], -1).astype(np.uint8)
-            img = np.stack([data, data, M[i, :, :] * 255], 0)
-            img = img.astype(np.uint8).transpose(1, 2, 0)
-            raw_shape = (img.shape[1], img.shape[0])
-
-            img_raw = np.float32(cv2.resize(img_raw, (224, 224))) / 255
-            img = np.float32(cv2.resize(img, (224, 224))) / 255
-
-            input = preprocess_image(img)
-
-            target_index = 1
-            mask, pred = grad_cam(input, target_index)
-
-            cam = cv2.resize(mask, raw_shape)
-            CAM_V.append(cam)
-        CAM_V = np.array(CAM_V)
-        V = np.array(V)
-        output_name = names.split('.nii')[0] + '.npy'
-        output_path = os.path.join(o_path, 'CAM_'+output_name)
-        output_path_v = os.path.join(o_path, 'RAW_'+output_name)
-
-        np.save(output_path, CAM_V)
-        np.save(output_path_v, V)
+    print("Only use as a module. IMPORT it rather than execute it.")
