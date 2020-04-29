@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
-
+import matplotlib.pyplot as plt
 
 transform = transforms.Compose([  # transforms.ToPILImage(),
     transforms.Resize(256),
@@ -32,34 +32,51 @@ def get_path(np_image_root, np_mask_lung_root):
     return np_images, masks
 
 
+def preprocess(np_lung, padding=35):
+
+    np_lung = np_lung[-300:-40, :, :]
+
+    TOP = 1200
+    FLOOR = -700
+
+    np_lung[np_lung > TOP] = TOP
+    np_lung[np_lung < FLOOR] = FLOOR
+    np_lung -= FLOOR
+    np_lung = np_lung / (TOP - FLOOR) * 255
+
+    sliced_image = np.zeros([padding, np_lung.shape[1], np_lung.shape[2]])
+
+    slice_num = 0
+    for cnt, i in enumerate(range(np_lung.shape[0]-40, 45, -5)):
+        if cnt >= padding:
+            break
+        d = np_lung[i]
+        sliced_image[cnt] = d
+        slice_num += 1
+
+    sliced_image = sliced_image[:slice_num]
+
+    return sliced_image
+
+
 def concatenate(np_image, np_mask, padding=35):
     # reshape
-    np_image = np_image[-300:-40, :, :]
-    np_mask = np_mask[-300:-40, :np_image.shape[1], :np_image.shape[2]]
-    np_image = np_image[:np_mask.shape[0],
-                        :np_mask.shape[1], :np_mask.shape[2]]
-
     sliced_image = np.zeros([3, padding, 224, 224])
 
     # slice
-    for cnt, i in enumerate(range(np_image.shape[0]-40, 45, -5)):
-        # for cnt, i in enumerate(range(np_image.shape[0]-5,5, -3)):
-        if cnt >= padding:
-            break
-        d = np_image[i - 1:i + 1, :, :]
-        d[d > 700] = 700
-        d[d < -1200] = -1200
-        d = d * 255.0 / 1900
-        d = d - d.min()
+    for i in range(np_image.shape[0]):
+        d = np_image[i:i + 1, :, :]
+
         d = np.concatenate(
-            [np_mask[i:i + 1, :, :] * 255, d], 0)  # mask one channel
+            [np_mask[i:i + 1, :, :] * 255, d, d], 0)  # mask one channel
         d = d.astype(np.uint8)
         d = Image.fromarray(d.transpose(1, 2, 0))
         result = transform(d)
-        sliced_image[:, cnt] = result
+        sliced_image[:, i] = result
 
     tshape = sliced_image.shape
     sliced_image.resize([tshape[1], tshape[0], tshape[2], tshape[3]])
+    del np_image, np_mask
     return sliced_image
 
 

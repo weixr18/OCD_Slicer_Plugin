@@ -58,6 +58,9 @@ class Client():
             del os.environ['PYTHONNOUSERSITE']
 
         tmp_interpreterPath = r'E:\Anaconda3\envs\COVID\python.exe'
+        # TODO: pack a python3.6 interpreter with site-packages
+        # in the release version
+
         scriptPath = "./server_py3.py"
         dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
         absScriptPath = dirPath + '/' + scriptPath
@@ -65,8 +68,6 @@ class Client():
 
         self.proc = subprocess.Popen(
             [tmp_interpreterPath, absScriptPath],        # TODO: add mask path.
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
             cwd=cmd_work_path,
             bufsize=1,
             shell=False,
@@ -74,7 +75,7 @@ class Client():
         logging.info(self.proc.pid)
 
         # open the socket
-        time.sleep(1)
+        time.sleep(10)
 
         self.serverAddress = ('127.0.0.1', 31500)
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -90,11 +91,10 @@ class Client():
 
         # send data
         self.serverSocket.send(pickle.dumps(inputData, protocol=2))
-        logging.info("Data sent!")
+        logging.info("Processing...")
 
         # receive data
-        returnData = pickle.loads(self.serverSocket.recv(512000000))
-        logging.info('the data received is', returnData)
+        returnData = pickle.loads(self.serverSocket.recv(5000000))
 
         return returnData
 
@@ -273,7 +273,7 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
             updateVolumeFromArray(outputVolume, numpy_CAM)
 
         toc = time.time()
-        logging.info('Calculation completed. Time:' + str(toc - tic))
+        logging.info('Calculation completed. Total time:' + str(toc - tic))
 
         return True
 
