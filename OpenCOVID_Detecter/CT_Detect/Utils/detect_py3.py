@@ -60,11 +60,11 @@ def classify_CT(model, data, use_cuda=True):
             return output.cpu().numpy()
 
 
-def get_CAM(model, data):
+def get_CAM(model, data, use_cuda=True):
     """return the CAM picture of the selected slices"""
     grad_cam = GradCam(model=model,
                        target_layer_names=["6"],
-                       use_cuda=True)
+                       use_cuda=use_cuda)
 
     CAM_V = []
     for i in range(data.shape[0]):
