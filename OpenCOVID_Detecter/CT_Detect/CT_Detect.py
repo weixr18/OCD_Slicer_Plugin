@@ -42,6 +42,9 @@ class CT_Detect(ScriptedLoadableModule):
 #
 
 
+USE_CUDA = False
+
+
 class Client():
     """Subprocess and communication"""
 
@@ -67,7 +70,8 @@ class Client():
         cmd_work_path = r'D:\Codes\_Projects\Covid\OCD_Slicer_Plugin'
 
         self.proc = subprocess.Popen(
-            [tmp_interpreterPath, absScriptPath],        # TODO: add mask path.
+            [tmp_interpreterPath, absScriptPath,
+             "--use_cuda", str(USE_CUDA)],
             cwd=cmd_work_path,
             bufsize=1,
             shell=False,

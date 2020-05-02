@@ -250,6 +250,79 @@ def model_get(path):
     return model
 
 
+"""
+def get_CAM(model, data, use_cuda=True):
+"""
+
+"""return the CAM picture of the selected slices"""
+"""
+    grad_cam = GradCam(model=model,
+                       target_layer_names=["6"],
+                       use_cuda=use_cuda)
+
+    gb_model = GuidedBackpropReLUModel(
+        model=model, use_cuda=use_cuda)
+
+    CAM_Volume = np.zeros_like(data[0])
+
+    for i in range(data.shape[0]):
+        print("CAM start")
+        img = data[i, :, :, :]
+        print("11111111111")
+        img = np.transpose(img, (1, 2, 0)).astype(np.float32)
+        print("22222222222")
+        input = preprocess_image(img)
+        print("33333333")
+
+        target_index = 1
+        mask, pred = grad_cam(input, target_index)
+        print("4444444")
+        cam = mask
+        CAM_Volume[i] = cam
+        print("55555555")
+
+    return CAM_Volume
+"""
+
+"""
+
+        print("mask-->cam_mask, attention_area")
+
+        cam_mask = cv2.merge([mask, mask, mask])
+        attention_area = cam_mask > 0.55
+
+        print("img-->gb, gbt")
+
+        gb = gb_model(input, index=target_index)
+        gb = gb.transpose((1, 2, 0))
+        gbt = gb.copy()
+
+        print("gb-->attention_area")
+
+        gb = deprocess_image(gb)
+        attention_area = attention_area*(np.abs(gb-128) > 64)
+        attention_area = attention_area[:, :, 0] + \
+            attention_area[:, :, 1]+attention_area[:, :, 2]
+        attention_area = (attention_area >= 1).astype(np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
+        attention_area = cv2.erode(cv2.morphologyEx(
+            attention_area, cv2.MORPH_CLOSE, kernel), kernel)
+
+        print("img-->lung_mask-->attention_area")
+
+        lung_mask = cv2.erode(img[:, :, 2], kernel)
+        attention_area = attention_area*lung_mask
+        attention_area = np.stack(
+            [attention_area, attention_area, attention_area], -1)
+
+        print("img_raw, mask-->cam")
+        cam = show_cam_on_image(img_raw, mask)
+
+        print("cam_mask, gbt, attention_area-->cam_gb")
+        cam_gb = deprocess_image(cam_mask * gbt, attention_area)
+        """
+
+
 if __name__ == '__main__':
 
     print("Only use as a module. IMPORT it rather than execute it.")

@@ -6,6 +6,8 @@ import numpy as np
 import pickle
 import nibabel as nib
 import logging
+import argparse
+import matplotlib.pyplot as plt
 
 from Utils.data_py3 import concatenate, preprocess
 import Utils.detect_py3 as detect_py3
@@ -19,7 +21,7 @@ if sys.getdefaultencoding() != 'utf-8':
 class DT_Server():
     """Backend as a server"""
 
-    def __init__(self):
+    def __init__(self, use_cuda=True):
         self.address = ('127.0.0.1', 31500)
         self.ServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ServerSocket.bind(self.address)
@@ -29,6 +31,8 @@ class DT_Server():
         self.ServerSocket.listen(5)
         self.ClientSocket, clientAddress = self.ServerSocket.accept()
         print('got connected from', clientAddress)
+
+        self.use_cuda = use_cuda
 
         pass
 
@@ -56,12 +60,27 @@ class DT_Server():
 
                 # 进行预测
                 cnn_input = concatenate(lung_image, np_mask)
-                res = detect_py3.process(cnn_input)
+                res = detect_py3.process(cnn_input, use_cuda=self.use_cuda)
                 print(res['slice_scores'])
                 print("----------------Prediction done----------------")
 
                 # 发回client
                 self.ClientSocket.send(pickle.dumps(res, protocol=2))
+                if True:  # res['is_COVID']:
+                    for i in range(3):
+                        plt.subplot(3, 3, 1 + 3 * i)
+                        plt.title('mask')
+                        plt.imshow(res['CAM_slices'][i][0])
+
+                        plt.subplot(3, 3, 2 + 3 * i)
+                        plt.title('data')
+                        plt.imshow(res['CAM_slices'][i][1])
+
+                        plt.subplot(3, 3, 3 + 3 * i)
+                        plt.title('CAM')
+                        plt.imshow(res['numpy_CAM'][i])
+
+                    plt.show()
                 del res
                 print("----------------Array sent back----------------")
 
@@ -73,11 +92,21 @@ class DT_Server():
     pass  # end class
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--use_cuda", default=True)
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
     # TODO: listen the port.
     # when data come, process it, then send back results.
+    args = get_args()
+    use_cuda = args.use_cuda
+
     try:
-        server = DT_Server()
+        server = DT_Server(use_cuda=use_cuda)
         server.run()
     except Exception as e:
         time.sleep(10)

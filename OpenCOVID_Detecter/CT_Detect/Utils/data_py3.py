@@ -59,29 +59,28 @@ def preprocess(np_lung, padding=35):
     return sliced_image
 
 
-def concatenate(np_image, np_mask, padding=35):
+def concatenate(np_lung, np_mask, padding=35):
     # reshape
     sliced_image = np.zeros([3, padding, 224, 224])
 
     # slice
-    for i in range(np_image.shape[0]):
-        d = np_image[i:i + 1, :, :]
+    for i in range(np_lung.shape[0]):
+        d = np_lung[i:i + 1, :, :]
 
         d = np.concatenate(
-            [np_mask[i:i + 1, :, :] * 255, d, d], 0)  # mask one channel
+            [np_mask[i:i + 1, :, :] * 255, d, d], 0)  # 0:mask ,1,2:data
         d = d.astype(np.uint8)
         d = Image.fromarray(d.transpose(1, 2, 0))
         result = transform(d)
         sliced_image[:, i] = result
 
-    tshape = sliced_image.shape
-    sliced_image.resize([tshape[1], tshape[0], tshape[2], tshape[3]])
-    del np_image, np_mask
+    sliced_image = np.swapaxes(sliced_image, 0, 1)
+    del np_lung, np_mask
     return sliced_image
 
 
 @temporary
-def concatenate_image_and_mask(np_image, mask_path, padding=35):
+def concatenate_image_and_mask(np_lung, mask_path, padding=35):
     """get concatenated image and mask """
 
     # load raw data
@@ -94,5 +93,5 @@ def concatenate_image_and_mask(np_image, mask_path, padding=35):
     else:
         raise IOError("Incorrect input mask file suffix.")
 
-    return concatenate(np_image, np_mask)
+    return concatenate(np_lung, np_mask)
     """

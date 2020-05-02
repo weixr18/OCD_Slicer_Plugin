@@ -9,9 +9,11 @@ import numpy as np
 import torch.nn as nn
 from torch.autograd import Variable
 import argparse
+# import matplotlib.pyplot as plt
+
 
 from .net2d_py3 import resnet152
-from .grad_cam_py3 import GradCam, preprocess_image
+from .grad_cam_py3 import GradCam, preprocess_image  # get_CAM
 
 
 MODEL_PATH = '../model/classify_model.pt'
@@ -30,20 +32,32 @@ def load_classify_model(model_path):
     return model
 
 
-def classify_CT(model, data):
+def classify_CT(model, data, use_cuda=True):
     """return the classify scores of the CT slices"""
     output = None
     data = torch.tensor(data, dtype=torch.float32)
-    with torch.no_grad():
-        # data size: [-1, 3, 224, 224]
-        model.eval()
-        net = nn.DataParallel(model).cuda()
-        model = model.cuda()
-        input = Variable(data).cuda()
-        output = net(input)
 
-    if output is not None:
-        return output.cpu().numpy()
+    if use_cuda:
+        with torch.no_grad():
+            # data size: [-1, 3, 224, 224]
+            model.eval()
+            net = nn.DataParallel(model).cuda()
+            model = model.cuda()
+            input = Variable(data).cuda()
+            output = net(input)
+
+        if output is not None:
+            return output.cpu().numpy()
+    else:
+        with torch.no_grad():
+            # data size: [-1, 3, 224, 224]
+            model.eval()
+            net = nn.DataParallel(model)
+            input = Variable(data)
+            output = net(input)
+
+        if output is not None:
+            return output.cpu().numpy()
 
 
 def get_CAM(model, data):
@@ -67,42 +81,32 @@ def get_CAM(model, data):
     return CAM_V
 
 
-def get_args():
-    """get the command line arguments"""
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--image_path', type=str, default='../../Example/example1/data/98_1-30.nii',
-                        help='Input raw image path')
-
-    parser.add_argument('--mask_path', type=str, default='../../Example/example1/seg/98_1-30.nii',
-                        help='Input mask image path')
-    args = parser.parse_args()
-    return args
-
-
-def process(numpy_image):
+def process(numpy_image, use_cuda=True):
     dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-2])
     model_path = dirPath + '/' + MODEL_PATH
     model = load_classify_model(model_path)
     CAM = None
 
     # Predict scores
-    prediction = classify_CT(model, numpy_image)
+    prediction = classify_CT(model, numpy_image, use_cuda=use_cuda)
     slice_scores = np.argmax(prediction, axis=1)
     print("------------------Scoring done!------------------")
 
     # CAM pictures
     mean_score = np.mean(np.sort(slice_scores)[-3:])
     is_COVID = (mean_score > 0.5)
-    if is_COVID:
+    if True:  # is_COVID:
+        print(np.argsort(slice_scores)[-3:])
+        a = np.argsort(slice_scores)[-3:]
+
         support_data = numpy_image[np.argsort(slice_scores)[-3:]]
-        numpy_CAM = get_CAM(model, support_data)
-        numpy_CAM = numpy_CAM * 255
+        numpy_CAM = get_CAM(model, support_data, use_cuda=use_cuda)
 
         return {
             "is_COVID": is_COVID,
             "numpy_CAM": numpy_CAM,
             "slice_scores": slice_scores,
+            "CAM_slices": support_data,
         }
     else:
         return {
