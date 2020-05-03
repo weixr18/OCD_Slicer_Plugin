@@ -52,7 +52,7 @@ class Client():
 
         # Set up a subprocess
 
-        # Prepare the environment
+        # Clear the python paths
         if 'PYTHONPATH' in os.environ:
             del os.environ['PYTHONPATH']
         if 'PYTHONHOME' in os.environ:
@@ -90,9 +90,6 @@ class Client():
         self.proc.terminate()
 
     def solve(self, inputData):
-        # TODO: pack the data, send by socket,
-        # and depack the return data as return value
-
         # send data
         self.serverSocket.send(pickle.dumps(inputData, protocol=2))
         logging.info("Processing...")
@@ -272,9 +269,13 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
         is_COVID = npOutputData['is_COVID']
         slice_scores = npOutputData['slice_scores']
         if is_COVID:
+            pass
+            # show some other data, but not CAM
+            """
             numpy_CAM = npOutputData['numpy_CAM']
             outputVolume.CreateDefaultDisplayNodes()
             updateVolumeFromArray(outputVolume, numpy_CAM)
+            """
 
         toc = time.time()
         logging.info('Calculation completed. Total time:' + str(toc - tic))

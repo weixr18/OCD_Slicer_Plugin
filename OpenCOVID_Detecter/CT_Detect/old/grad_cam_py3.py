@@ -6,9 +6,25 @@ import torch
 from torch.autograd import Function
 from torchvision import models
 from .net2d_py3 import resnet152
-
+import matplotlib.pyplot as plt
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+MODEL_PATH = '../model/classify_model.pt'
+dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-2])
+ABS_MODEL_PATH = dirPath + '/' + MODEL_PATH
+
+
+def load_classify_model(model_path=ABS_MODEL_PATH):
+    """load the classify net model"""
+    model = resnet152(2)
+    model_dict = model.state_dict()
+
+    pretrained_dict = torch.load(model_path)
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if
+                       k in model_dict.keys() and v.size() == model_dict[k].size()}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+    return model
 
 
 class FeatureExtractor():
@@ -228,7 +244,8 @@ def show_cam_on_image(img, mask, extral=None):
     if isinstance(extral, np.ndarray):
         mask = mask * extral[:, :, 1]
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
-    heatmap = np.float32(heatmap) / 255
+    heatmap = np.float32(heatmap)
+    heatmap = heatmap / 255
 
     cam = heatmap + np.float32(img)
     cam = cam / np.max(cam)
@@ -250,55 +267,43 @@ def model_get(path):
     return model
 
 
-"""
 def get_CAM(model, data, use_cuda=True):
-"""
-
-"""return the CAM picture of the selected slices"""
-"""
+    """return the CAM picture of the selected slices"""
     grad_cam = GradCam(model=model,
                        target_layer_names=["6"],
                        use_cuda=use_cuda)
-
     gb_model = GuidedBackpropReLUModel(
-        model=model, use_cuda=use_cuda)
+        model=load_classify_model(), use_cuda=use_cuda)
 
-    CAM_Volume = np.zeros_like(data[0])
+    shape = data.shape
+    # CAM_V = np.zeros([shape[0], shape[-2], shape[-1]])
+    CAM_V = []
 
     for i in range(data.shape[0]):
-        print("CAM start")
         img = data[i, :, :, :]
-        print("11111111111")
+        img_raw = img.copy()
+        img_raw[0] = img_raw[1]
         img = np.transpose(img, (1, 2, 0)).astype(np.float32)
-        print("22222222222")
-        input = preprocess_image(img)
-        print("33333333")
+        img_raw = np.transpose(img_raw, (1, 2, 0)).astype(np.float32)
 
+        input = preprocess_image(img)
         target_index = 1
         mask, pred = grad_cam(input, target_index)
-        print("4444444")
-        cam = mask
-        CAM_Volume[i] = cam
-        print("55555555")
+        cam = show_cam_on_image(img_raw, mask)
 
-    return CAM_Volume
-"""
-
-"""
+        """
 
         print("mask-->cam_mask, attention_area")
-
         cam_mask = cv2.merge([mask, mask, mask])
         attention_area = cam_mask > 0.55
 
         print("img-->gb, gbt")
-
         gb = gb_model(input, index=target_index)
         gb = gb.transpose((1, 2, 0))
+        print("gb_0:", gb.shape, gb.min(), gb.max())
         gbt = gb.copy()
 
         print("gb-->attention_area")
-
         gb = deprocess_image(gb)
         attention_area = attention_area*(np.abs(gb-128) > 64)
         attention_area = attention_area[:, :, 0] + \
@@ -309,18 +314,22 @@ def get_CAM(model, data, use_cuda=True):
             attention_area, cv2.MORPH_CLOSE, kernel), kernel)
 
         print("img-->lung_mask-->attention_area")
-
         lung_mask = cv2.erode(img[:, :, 2], kernel)
         attention_area = attention_area*lung_mask
         attention_area = np.stack(
             [attention_area, attention_area, attention_area], -1)
 
-        print("img_raw, mask-->cam")
-        cam = show_cam_on_image(img_raw, mask)
-
         print("cam_mask, gbt, attention_area-->cam_gb")
         cam_gb = deprocess_image(cam_mask * gbt, attention_area)
         """
+
+        # cam = mask
+        # CAM_V[i] = cam
+        CAM_V.append(cam)
+
+    CAM_V = np.array(CAM_V)
+
+    return CAM_V
 
 
 if __name__ == '__main__':

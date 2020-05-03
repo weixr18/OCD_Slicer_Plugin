@@ -10,8 +10,9 @@ import argparse
 import matplotlib.pyplot as plt
 
 from Utils.data_py3 import concatenate, preprocess
-import Utils.detect_py3 as detect_py3
 from Utils.segment_py3 import gen_mask
+import Utils.detect_py3 as detect_py3
+
 
 if sys.getdefaultencoding() != 'utf-8':
     reload(sys)
@@ -43,49 +44,45 @@ class DT_Server():
     def run(self):
         """主函数"""
 
-        try:
-            while True:
+        while True:
 
-                # 获取图像
-                a = self.ClientSocket.recv(200000000)
-                lung_image = pickle.loads(a, encoding='iso-8859-1')
+            # 获取图像
+            a = self.ClientSocket.recv(200000000)
+            lung_image = pickle.loads(a, encoding='iso-8859-1')
 
-                print("----------------Image get----------------")
+            print("----------------Image get----------------")
 
-                # 获取mask
-                lung_image = preprocess(lung_image)
-                np_mask = gen_mask(lung_image)
+            # 获取mask
+            lung_image = preprocess(lung_image)
+            np_mask = gen_mask(lung_image)
 
-                print("----------------Mask get----------------")
+            print("----------------Mask get----------------")
 
-                # 进行预测
-                cnn_input = concatenate(lung_image, np_mask)
-                res = detect_py3.process(cnn_input, use_cuda=self.use_cuda)
-                print(res['slice_scores'])
-                print("----------------Prediction done----------------")
+            # 进行预测
+            cnn_input = concatenate(lung_image, np_mask)
+            res = detect_py3.process(cnn_input, use_cuda=self.use_cuda)
+            print('slice_scores:', res['slice_scores'])
+            print("----------------Prediction done----------------")
 
-                # 发回client
-                self.ClientSocket.send(pickle.dumps(res, protocol=2))
-                if True:  # res['is_COVID']:
-                    for i in range(3):
-                        plt.subplot(3, 3, 1 + 3 * i)
-                        plt.title('mask')
-                        plt.imshow(res['CAM_slices'][i][0])
+            # 发回client
+            self.ClientSocket.send(pickle.dumps(res, protocol=2))
+            if True:  # res['is_COVID']:
+                ROWS = 1
+                COLS = 2
+                for i in range(ROWS):
 
-                        plt.subplot(3, 3, 2 + 3 * i)
-                        plt.title('data')
-                        plt.imshow(res['CAM_slices'][i][1])
+                    plt.subplot(ROWS, COLS, 2 + COLS * i)
+                    plt.title('raw-data')
+                    plt.imshow(res['CAM_slices'][i][1], cmap=plt.cm.gray)
 
-                        plt.subplot(3, 3, 3 + 3 * i)
-                        plt.title('CAM')
-                        plt.imshow(res['numpy_CAM'][i])
+                    plt.subplot(ROWS, COLS, 1 + COLS * i)
+                    plt.title('data+segment')
+                    plt.imshow(np.transpose(
+                        res['CAM_slices'][i], (1, 2, 0)))
 
-                    plt.show()
-                del res
-                print("----------------Array sent back----------------")
-
-        except Exception as e:
-            raise e
+                plt.show()
+            del res
+            print("----------------Array sent back----------------")
 
         pass  # end run
 
@@ -100,8 +97,6 @@ def get_args():
 
 
 if __name__ == "__main__":
-    # TODO: listen the port.
-    # when data come, process it, then send back results.
     args = get_args()
     use_cuda = args.use_cuda
 
