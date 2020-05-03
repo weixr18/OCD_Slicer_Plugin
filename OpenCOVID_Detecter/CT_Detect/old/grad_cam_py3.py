@@ -1,4 +1,5 @@
 # python 3.6
+# Contributors: Xinran Wei, Weixiang Chen
 import cv2
 import os
 import numpy as np

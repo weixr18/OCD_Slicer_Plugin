@@ -1,5 +1,6 @@
-# OCD 插件 后端代码
 # python 3.6
+# Contributors: Xinran Wei, Weixiang Chen
+
 import os
 import sys
 import time

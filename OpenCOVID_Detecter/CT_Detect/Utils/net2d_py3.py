@@ -1,4 +1,5 @@
 # python 3.6
+# Contributors: Weixiang Chen,
 from __future__ import print_function, division, absolute_import
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo

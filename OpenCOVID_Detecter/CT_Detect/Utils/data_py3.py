@@ -1,4 +1,5 @@
 # python 3.6
+# Contributors: Xinran Wei, Weixiang Chen
 import glob
 import torch
 import numpy as np
