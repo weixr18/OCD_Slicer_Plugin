@@ -10,3 +10,7 @@ The principle is based on a deep learning technique for scanning CT identificati
 So far, we have implemented a prototype version of the plugin. In this version, we can handle the corpora data that Slicer reads in. We section it, perform lung segmentation, and use the segmentation results and sections to diagnose the presence or absence of COVID-19 lesions on this CT image.
 
 Our algorithms are still being tested and optimized. After the algorithm has matured steadily, we will make it part of the Slicer open source plugin library.
+
+## Contributors
+
+Xinran Wei, WeiXiang Chen, PeiYi Han, Kaiwen Men, Bolun Liu.

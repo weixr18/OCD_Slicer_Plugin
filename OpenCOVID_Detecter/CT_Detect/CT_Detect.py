@@ -1,5 +1,5 @@
 # python 2.7
-# Contributors: Xinran Wei, Bolun Liu,
+# Contributors: Xinran Wei, Bolun Liu, Kaiwen Men
 import os
 import sys
 import time
@@ -203,6 +203,8 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             outputVolume.GetID()
         )
 
+        # TODO: display the interpolated segmentation in the yellow/green scene.
+
         pass
 
     def onDivideButton(self):
@@ -211,9 +213,6 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
     def showSlices(self):
         """show the slices on the screen."""
-
-        # TODO : let the layout display the return value,
-        # i.e. self.resData["ret_slices"]
 
         layer = self.ui.showSliderWidget.value
         self.ui.scorelineEdit.setText(self.getScore(int(layer)))
@@ -224,8 +223,6 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         greenLogic = lm.sliceWidget('Green').sliceLogic()
         redLogic.SetSliceOffset(layer)
 
-        # yellowLogic.SetSliceOffset(layer)
-        # greenLogic.SetSliceOffset(layer)
         pass
 
     def getScore(self, layer):
