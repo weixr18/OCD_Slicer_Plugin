@@ -145,7 +145,7 @@
     </widget>
    </item>
    <item row="2" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="slicing">
      <property name="title">
       <string>Slicing</string>
      </property>
@@ -158,10 +158,14 @@
        </widget>
       </item>
       <item>
-       <widget class="qMRMLRangeWidget" name="sliceRange"/>
+       <widget class="qMRMLRangeWidget" name="sliceRange">
+        <property name="maximumValue">
+         <double>99.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QWidget" name="horizontalWidget" native="true">
+       <widget class="QWidget" name="spacing" native="true">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -177,7 +181,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="Spacing"/>
+          <widget class="QSpinBox" name="spacingBox"/>
          </item>
         </layout>
        </widget>

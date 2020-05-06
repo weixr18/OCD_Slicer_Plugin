@@ -33,13 +33,15 @@ def get_path(np_image_root, np_mask_lung_root):
     return np_images, masks
 
 
-def preprocess(np_lung, padding=35,
-               start_pos=-300,
-               end_pos=-40,
-               spacing=5):
+def preprocess(np_lung,
+               padding,
+               start_pos,
+               end_pos,
+               spacing):
 
-    start_pos += np_lung.shape[0]
-    start_pos = min(0, np_lung.shape[0])
+    print("padding, start_pos, end_pos, spacing:")
+    print(padding, start_pos, end_pos, spacing)
+
     np_lung = np_lung[start_pos:end_pos, :, :]
 
     TOP = 1200
@@ -50,15 +52,9 @@ def preprocess(np_lung, padding=35,
     np_lung -= FLOOR
     np_lung = np_lung / (TOP - FLOOR) * 255
 
-    if start_pos < 0:
-        start_pos += np_lung.shape[0]
-    if end_pos < 0:
-        end_pos += np_lung.shape[0]
-
-    padding = (end_pos - start_pos) // spacing
     sliced_image = np.zeros([padding, np_lung.shape[1], np_lung.shape[2]])
 
-    for cnt, i in enumerate(range(start_pos, end_pos, spacing)):
+    for cnt, i in enumerate(range(0, end_pos - start_pos, spacing)):
         if cnt >= padding:
             break
         sliced_image[cnt] = np_lung[i]

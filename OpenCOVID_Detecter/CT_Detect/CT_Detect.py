@@ -132,7 +132,8 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         ScriptedLoadableModuleWidget.setup(self)
 
         # Load widget from .ui file (created by Qt Designer)
-        uiWidget = slicer.util.loadUI(self.resourcePath('UI/CT_Detect.ui'))
+        uiWidget = slicer.util.loadUI(
+            self.resourcePath('UI/CT_Detect.ui'))
         self.layout.addWidget(uiWidget)
         self.ui = slicer.util.childWidgetVariables(uiWidget)
         self.ui.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
@@ -155,7 +156,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             "currentNodeChanged(vtkMRMLNode*)",
             self.buttonStateChange
         )
-        self.ui.showSliderWidget.connect(
+        self.ui.gbxDisplay.f1.showSliderWidget.connect(
             "valueChanged(double)",
             self.showSlices
         )
@@ -163,10 +164,10 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         # Add vertical spacer
         self.layout.addStretch(1)
 
-        # Refresh button states
+        # Refresh components states
         self.buttonStateChange()
-        self.onDivideButton()
-        self.showSlices()
+        self.rangeInitial()
+
         pass
 
     def cleanup(self):
@@ -179,15 +180,46 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         ) and self.ui.outputw.outputSelector.currentNode()
         self.ui.divideButton.enabled = self.resultGet
         self.ui.gbxDisplay.enabled = self.resultGet
+        self.rangeInitial()
+
+        pass
+
+    def rangeInitial(self):
+        sliceRange = self.ui.slicing.sliceRange
+        sliceRange.minimum = 0
+        sliceRange.maximum = arrayFromVolume(
+            self.ui.inputw.inputSelector.currentNode()
+        ).shape[0]
+
+        sliceRange.minimumValue = sliceRange.minimum
+        sliceRange.maximumValue = sliceRange.maximum
+
+        spacing = self.ui.slicing.spacing.spacingBox
+        spacing.minimum = 1
+        spacing.maximum = 20
+        spacing.value = 5
+
         pass
 
     def onApplyButton(self):
         """on apply button clicked"""
 
+        # slicing info
+        start_pos = int(self.ui.slicing.sliceRange.minimumValue)
+        end_pos = int(self.ui.slicing.sliceRange.maximumValue)
+        spacing = self.ui.slicing.spacing.spacingBox.value
+        padding = (end_pos - start_pos) // spacing
+        inputInfo = {'start_pos': start_pos,
+                     'end_pos': end_pos,
+                     'spacing': spacing,
+                     'padding': padding,
+                     }
+
         # run the algorithm
         self.resData = self.logic.run(self.ui.inputw.inputSelector.currentNode(),
                                       self.ui.outputw.outputSelector.currentNode(),
-                                      self.client)
+                                      self.client,
+                                      inputInfo)
         self.resultGet = True
         self.buttonStateChange()
 
@@ -203,6 +235,9 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             outputVolume.GetID()
         )
 
+        show = self.ui.gbxDisplay.f1.showSliderWidget
+        show.maximum = self.resData["slices"].shape[0]
+
         # TODO: display the interpolated segmentation in the yellow/green scene.
 
         pass
@@ -214,7 +249,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
     def showSlices(self):
         """show the slices on the screen."""
 
-        layer = self.ui.showSliderWidget.value
+        layer = self.ui.gbxDisplay.f1.showSliderWidget.value
         self.ui.scorelineEdit.setText(self.getScore(int(layer)))
 
         lm = slicer.app.layoutManager()
@@ -275,9 +310,7 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
             return False
         return True
 
-    def run(self, inputVolume, outputVolume, client, inputInfo={'start_pos': -300,
-                                                                'end_pos': -40,
-                                                                'spacing': 5}):
+    def run(self, inputVolume, outputVolume, client, inputInfo):
 
         if not self.isValidInputOutputData(inputVolume, outputVolume):
             slicer.util.errorDisplay(
