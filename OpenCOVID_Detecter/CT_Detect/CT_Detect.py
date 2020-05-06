@@ -90,9 +90,13 @@ class Client():
         self.serverSocket.close()
         self.proc.terminate()
 
-    def solve(self, inputData):
+    def solve(self, inputData, inputInfo):
         # send data
-        self.serverSocket.send(pickle.dumps(inputData, protocol=2))
+        pack = {
+            "data": inputData,
+            "info": inputInfo,
+        }
+        self.serverSocket.send(pickle.dumps(pack, protocol=2))
         logging.info("Processing...")
 
         # receive data
@@ -213,6 +217,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         logic = CT_DetectLogic()
         enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
         imageThreshold = self.imageThresholdSliderWidget.value
+        # get some inputInfo here, then send to run.
         logic.run(self.inputSelector.currentNode(),
                   self.outputSelector.currentNode(),
                   self.client)
@@ -254,7 +259,9 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
             return False
         return True
 
-    def run(self, inputVolume, outputVolume, client):
+    def run(self, inputVolume, outputVolume, client, inputInfo={'start_pos': -300,
+                                                                'end_pos': -40,
+                                                                'spacing': 5}):
 
         if not self.isValidInputOutputData(inputVolume, outputVolume):
             slicer.util.errorDisplay(
@@ -265,7 +272,7 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
         tic = time.time()
 
         npInputData = arrayFromVolume(inputVolume)
-        npOutputData = client.solve(npInputData)
+        npOutputData = client.solve(npInputData, inputInfo)
 
         is_COVID = npOutputData['is_COVID']
         slice_scores = npOutputData['slice_scores']

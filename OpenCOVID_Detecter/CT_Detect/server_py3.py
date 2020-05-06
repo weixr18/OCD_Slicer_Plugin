@@ -19,6 +19,8 @@ if sys.getdefaultencoding() != 'utf-8':
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
+SHOW_RES = True
+
 
 class DT_Server():
     """Backend as a server"""
@@ -49,39 +51,46 @@ class DT_Server():
 
             # 获取图像
             a = self.ClientSocket.recv(200000000)
-            lung_image = pickle.loads(a, encoding='iso-8859-1')
+            lung_pack = pickle.loads(a, encoding='iso-8859-1')
+            lung_image = lung_pack["data"]
+            info = lung_pack['info']
 
             print("----------------Image get----------------")
 
             # 获取mask
-            lung_image = preprocess(lung_image)
+            lung_image, padding = preprocess(lung_image,
+                                             start_pos=info['start_pos'],
+                                             end_pos=info['end_pos'],
+                                             spacing=info['spacing'])
             np_mask = gen_mask(lung_image)
 
             print("----------------Mask get----------------")
 
             # 进行预测
-            cnn_input = concatenate(lung_image, np_mask)
+            cnn_input = concatenate(lung_image, np_mask, padding)
             res = detect_py3.process(cnn_input, use_cuda=self.use_cuda)
             print('slice_scores:', res['slice_scores'])
             print("----------------Prediction done----------------")
 
             # 发回client
             self.ClientSocket.send(pickle.dumps(res, protocol=2))
-            if True:  # res['is_COVID']:
-                ROWS = 1
-                COLS = 2
-                for i in range(ROWS):
 
-                    plt.subplot(ROWS, COLS, 2 + COLS * i)
-                    plt.title('raw-data')
+            if SHOW_RES:
+                ROWS = 2
+                SAMPLE_NUM = 3
+                for i in range(SAMPLE_NUM):
+
+                    plt.subplot(ROWS, SAMPLE_NUM, 1 + i + SAMPLE_NUM * 0)
+                    plt.title('raw data')
                     plt.imshow(res['CAM_slices'][i][1], cmap=plt.cm.gray)
 
-                    plt.subplot(ROWS, COLS, 1 + COLS * i)
-                    plt.title('data+segment')
+                    plt.subplot(ROWS, SAMPLE_NUM, 1 + i + SAMPLE_NUM * 1)
+                    plt.title('data & segment')
                     plt.imshow(np.transpose(
                         res['CAM_slices'][i], (1, 2, 0)))
 
                 plt.show()
+
             del res
             print("----------------Array sent back----------------")
 

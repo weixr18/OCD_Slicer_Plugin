@@ -33,9 +33,12 @@ def get_path(np_image_root, np_mask_lung_root):
     return np_images, masks
 
 
-def preprocess(np_lung, padding=35):
+def preprocess(np_lung, padding=35,
+               start_pos=-300,
+               end_pos=-40,
+               spacing=5):
 
-    np_lung = np_lung[-300:-40, :, :]
+    np_lung = np_lung[start_pos:end_pos, :, :]
 
     TOP = 1200
     FLOOR = -700
@@ -45,22 +48,24 @@ def preprocess(np_lung, padding=35):
     np_lung -= FLOOR
     np_lung = np_lung / (TOP - FLOOR) * 255
 
+    if start_pos < 0:
+        start_pos += np_lung.shape[0]
+    if end_pos < 0:
+        end_pos += np_lung.shape[0]
+
+    padding = (end_pos - start_pos) // spacing
     sliced_image = np.zeros([padding, np_lung.shape[1], np_lung.shape[2]])
 
-    slice_num = 0
-    for cnt, i in enumerate(range(np_lung.shape[0]-40, 45, -5)):
+    for cnt, i in enumerate(range(start_pos, end_pos, spacing)):
         if cnt >= padding:
             break
-        d = np_lung[i]
-        sliced_image[cnt] = d
-        slice_num += 1
+        sliced_image[cnt] = np_lung[i]
 
-    sliced_image = sliced_image[:slice_num]
-
-    return sliced_image
+    sliced_image = sliced_image[:padding]
+    return sliced_image, padding
 
 
-def concatenate(np_lung, np_mask, padding=35):
+def concatenate(np_lung, np_mask, padding):
     # reshape
     sliced_image = np.zeros([3, padding, 224, 224])
 
