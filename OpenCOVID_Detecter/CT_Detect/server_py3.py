@@ -19,7 +19,7 @@ if sys.getdefaultencoding() != 'utf-8':
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-SHOW_RES = True
+SHOW_RES = False
 
 
 class DT_Server():
@@ -82,12 +82,12 @@ class DT_Server():
 
                     plt.subplot(ROWS, SAMPLE_NUM, 1 + i + SAMPLE_NUM * 0)
                     plt.title('raw data')
-                    plt.imshow(res['CAM_slices'][i][1], cmap=plt.cm.gray)
+                    plt.imshow(res['demo_slices'][i][1], cmap=plt.cm.gray)
 
                     plt.subplot(ROWS, SAMPLE_NUM, 1 + i + SAMPLE_NUM * 1)
                     plt.title('data & segment')
                     plt.imshow(np.transpose(
-                        res['CAM_slices'][i], (1, 2, 0)))
+                        res['demo_slices'][i], (1, 2, 0)))
 
                 plt.show()
 

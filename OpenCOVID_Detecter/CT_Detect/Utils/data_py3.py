@@ -38,6 +38,8 @@ def preprocess(np_lung, padding=35,
                end_pos=-40,
                spacing=5):
 
+    start_pos += np_lung.shape[0]
+    start_pos = min(0, np_lung.shape[0])
     np_lung = np_lung[start_pos:end_pos, :, :]
 
     TOP = 1200
@@ -62,6 +64,7 @@ def preprocess(np_lung, padding=35,
         sliced_image[cnt] = np_lung[i]
 
     sliced_image = sliced_image[:padding]
+
     return sliced_image, padding
 
 

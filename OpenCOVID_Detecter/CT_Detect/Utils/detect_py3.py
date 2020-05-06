@@ -82,7 +82,8 @@ def process(numpy_image, use_cuda=True):
     return {
         "is_COVID": is_COVID,
         "slice_scores": slice_scores,
-        "CAM_slices": support_data,
+        "ret_slices": numpy_image,
+        "demo_slices": support_data,
     }
 
 

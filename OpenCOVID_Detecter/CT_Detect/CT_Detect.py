@@ -27,12 +27,11 @@ import pickle
 class CT_Detect(ScriptedLoadableModule):
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        # TODO make this more human readable by adding spaces
         self.parent.title = "CT_Detect"
-        self.parent.categories = ["Examples"]
+        self.parent.categories = ["COVID Detect"]
         self.parent.dependencies = []
-        # replace with "Firstname Lastname (Organization)"
-        self.parent.contributors = ["John Doe (AnyWare Corp.)"]
+        self.parent.contributors = ["XinRan Wei, Kaiwen Men, PeiYi Han, BoLun Liu, \
+                                    WeiXiang Chen, (Tsinghua Univ.)"]
         self.parent.helpText = ""
         self.parent.helpText += self.getDefaultModuleDocumentationLink()
         # replace with organization, grant and thanks.
@@ -100,7 +99,7 @@ class Client():
         logging.info("Processing...")
 
         # receive data
-        returnData = pickle.loads(self.serverSocket.recv(5000000))
+        returnData = pickle.loads(self.serverSocket.recv(200000000))
 
         return returnData
 
@@ -110,117 +109,137 @@ class Client():
 class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
     def __init__(self, parent):
+        """Components initialize."""
+        # father widget initialize
         ScriptedLoadableModuleWidget.__init__(self, parent)
 
         # client setup
         self.client = Client()
         print("Subprocess launched.")
 
+        # logic setup
+        self.logic = CT_DetectLogic()
+
+        # state flag
+        self.resultGet = False
+        self.resData = False
+        pass
+
     def setup(self):
+        """Layouts initialize"""
+
+        # Father content setup
         ScriptedLoadableModuleWidget.setup(self)
 
-        # Instantiate and connect widgets ...
+        # Load widget from .ui file (created by Qt Designer)
+        uiWidget = slicer.util.loadUI(self.resourcePath('UI/CT_Detect.ui'))
+        self.layout.addWidget(uiWidget)
+        self.ui = slicer.util.childWidgetVariables(uiWidget)
+        self.ui.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
+        self.ui.outputw.outputSelector.setMRMLScene(slicer.mrmlScene)
 
-        #
-        # Parameters Area
-        #
-        parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-        parametersCollapsibleButton.text = "Parameters"
-        self.layout.addWidget(parametersCollapsibleButton)
-
-        # Layout within the dummy collapsible button
-        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
-        #
-        # input volume selector
-        #
-        self.inputSelector = slicer.qMRMLNodeComboBox()
-        self.inputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelector.selectNodeUponCreation = True
-        self.inputSelector.addEnabled = False
-        self.inputSelector.removeEnabled = False
-        self.inputSelector.noneEnabled = False
-        self.inputSelector.showHidden = False
-        self.inputSelector.showChildNodeTypes = False
-        self.inputSelector.setMRMLScene(slicer.mrmlScene)
-        self.inputSelector.setToolTip("Pick the input to the algorithm.")
-        parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
-
-        #
-        # output volume selector
-        #
-        self.outputSelector = slicer.qMRMLNodeComboBox()
-        self.outputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.outputSelector.selectNodeUponCreation = True
-        self.outputSelector.addEnabled = True
-        self.outputSelector.removeEnabled = True
-        self.outputSelector.noneEnabled = True
-        self.outputSelector.showHidden = False
-        self.outputSelector.showChildNodeTypes = False
-        self.outputSelector.setMRMLScene(slicer.mrmlScene)
-        self.outputSelector.setToolTip("Pick the output to the algorithm.")
-        parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
-        #
-        # threshold value
-        #
-        self.imageThresholdSliderWidget = ctk.ctkSliderWidget()
-        self.imageThresholdSliderWidget.singleStep = 0.1
-        self.imageThresholdSliderWidget.minimum = -100
-        self.imageThresholdSliderWidget.maximum = 100
-        self.imageThresholdSliderWidget.value = 0.5
-        self.imageThresholdSliderWidget.setToolTip(
-            "Set threshold value for computing the output image. Voxels that have intensities lower than this value will set to zero.")
-        parametersFormLayout.addRow(
-            "Image threshold", self.imageThresholdSliderWidget)
-
-        #
-        # check box to trigger taking screen shots for later use in tutorials
-        #
-        self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-        self.enableScreenshotsFlagCheckBox.checked = 0
-        self.enableScreenshotsFlagCheckBox.setToolTip(
-            "If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-        parametersFormLayout.addRow(
-            "Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-        #
-        # Apply Button
-        #
-        self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Run the algorithm."
-        self.applyButton.enabled = False
-        parametersFormLayout.addRow(self.applyButton)
-
-        # connections
-        self.applyButton.connect('clicked(bool)', self.onApplyButton)
-        self.inputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-        self.outputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+        # connect slots
+        self.ui.gbxAction.applyButton.connect(
+            'clicked(bool)',
+            self.onApplyButton
+        )
+        self.ui.gbxAction.divideButton.connect(
+            'clicked(bool)',
+            self.onDivideButton
+        )
+        self.ui.inputw.inputSelector.connect(
+            "currentNodeChanged(vtkMRMLNode*)",
+            self.buttonStateChange
+        )
+        self.ui.outputw.outputSelector.connect(
+            "currentNodeChanged(vtkMRMLNode*)",
+            self.buttonStateChange
+        )
+        self.ui.showSliderWidget.connect(
+            "valueChanged(double)",
+            self.showSlices
+        )
 
         # Add vertical spacer
         self.layout.addStretch(1)
 
-        # Refresh Apply button state
-        self.onSelect()
+        # Refresh button states
+        self.buttonStateChange()
+        self.onDivideButton()
+        self.showSlices()
+        pass
 
     def cleanup(self):
         self.client.__del__()
         pass
 
-    def onSelect(self):
-        self.applyButton.enabled = self.inputSelector.currentNode(
-        ) and self.outputSelector.currentNode()
+    def buttonStateChange(self):
+        """reset the button accesses"""
+        self.ui.applyButton.enabled = self.ui.inputw.inputSelector.currentNode(
+        ) and self.ui.outputw.outputSelector.currentNode()
+        self.ui.divideButton.enabled = self.resultGet
+        self.ui.gbxDisplay.enabled = self.resultGet
+        pass
 
     def onApplyButton(self):
-        logic = CT_DetectLogic()
-        enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-        imageThreshold = self.imageThresholdSliderWidget.value
-        # get some inputInfo here, then send to run.
-        logic.run(self.inputSelector.currentNode(),
-                  self.outputSelector.currentNode(),
-                  self.client)
+        """on apply button clicked"""
+
+        # run the algorithm
+        self.resData = self.logic.run(self.ui.inputw.inputSelector.currentNode(),
+                                      self.ui.outputw.outputSelector.currentNode(),
+                                      self.client)
+        self.resultGet = True
+        self.buttonStateChange()
+
+        # set the volume
+        outputVolume = self.ui.outputw.outputSelector.currentNode()
+        outputVolume.CreateDefaultDisplayNodes()
+        updateVolumeFromArray(outputVolume, self.resData["slices"])
+
+        # set the scene
+        red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+        red_cn = red_logic.GetSliceCompositeNode()
+        red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+            outputVolume.GetID()
+        )
+
+        pass
+
+    def onDivideButton(self):
+        """we may need this."""
+        pass
+
+    def showSlices(self):
+        """show the slices on the screen."""
+
+        # TODO : let the layout display the return value,
+        # i.e. self.resData["ret_slices"]
+
+        layer = self.ui.showSliderWidget.value
+        self.ui.scorelineEdit.setText(self.getScore(int(layer)))
+
+        lm = slicer.app.layoutManager()
+        redLogic = lm.sliceWidget('Red').sliceLogic()
+        yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
+        greenLogic = lm.sliceWidget('Green').sliceLogic()
+        redLogic.SetSliceOffset(layer)
+
+        # yellowLogic.SetSliceOffset(layer)
+        # greenLogic.SetSliceOffset(layer)
+        pass
+
+    def getScore(self, layer):
+        """get score from layer index"""
+        if not self.resultGet:
+            return 0
+
+        if layer >= len(self.resData["slice_scores"]):
+            return 0
+
+        return self.resData["slice_scores"][layer]
+
+    pass  # end class
+
 
 #
 # CT_DetectLogic
@@ -265,30 +284,39 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
 
         if not self.isValidInputOutputData(inputVolume, outputVolume):
             slicer.util.errorDisplay(
-                'Input volume is the same as output volume. Choose a different output volume.')
+                'Input volume is the same as output volume. Choose a different output volume.'
+            )
             return False
 
         logging.info('Calculation started')
         tic = time.time()
 
+        # get input data
         npInputData = arrayFromVolume(inputVolume)
+
+        # send, calc and reveive output data
         npOutputData = client.solve(npInputData, inputInfo)
-
-        is_COVID = npOutputData['is_COVID']
-        slice_scores = npOutputData['slice_scores']
-        if is_COVID:
-            pass
-            # show some other data, but not CAM
-            """
-            numpy_CAM = npOutputData['numpy_CAM']
-            outputVolume.CreateDefaultDisplayNodes()
-            updateVolumeFromArray(outputVolume, numpy_CAM)
-            """
-
         toc = time.time()
         logging.info('Calculation completed. Total time:' + str(toc - tic))
 
-        return True
+        # split the segs and slices
+        outShape = npOutputData["ret_slices"].shape
+        npOutputData["slices"] = npOutputData["ret_slices"][:, 1, :, :]
+        npOutputData["slices"].reshape([outShape[0], outShape[2], outShape[3]])
+        npOutputData["segs"] = npOutputData["ret_slices"][:, 0, :, :]
+        npOutputData["segs"].reshape([outShape[0], outShape[2], outShape[3]])
+        del npOutputData["ret_slices"]
+
+        # data post-processing
+        npOutputData["slices"] *= 255
+        npOutputData["segs"] *= 255
+        npOutputData["segs"] = self.segmentInterpolation(npOutputData["segs"])
+
+        return npOutputData
+
+    def segmentInterpolation(self, npSeg):
+        """Interpolation of the segmentation result"""
+        return npSeg
 
 
 class CT_DetectTest(ScriptedLoadableModuleTest):
