@@ -1,5 +1,5 @@
 # python 3.6
-# Contributors: Xinran Wei, Bolun Liu,
+# Contributors: Xinran Wei, PeiYi Han
 import time
 import socket
 import sys
@@ -37,7 +37,6 @@ class DT_Server():
         print('got connected from', clientAddress)
 
         self.use_cuda = use_cuda
-
         pass
 
     def __del__(self):

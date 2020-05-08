@@ -1,5 +1,5 @@
 # python 2.7
-# Contributors: Xinran Wei, Bolun Liu, Kaiwen Men
+# Contributors: Xinran Wei, PeiYi Han, Kaiwen Men
 import os
 import sys
 import time
@@ -18,6 +18,8 @@ import subprocess
 import socket
 import sys
 import pickle
+
+from data_front import arrayInterpolation
 
 #
 # CT_Detect
@@ -138,6 +140,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         self.ui = slicer.util.childWidgetVariables(uiWidget)
         self.ui.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
         self.ui.outputw.outputSelector.setMRMLScene(slicer.mrmlScene)
+        self.ui.segmentw.segmentSelector.setMRMLScene(slicer.mrmlScene)
 
         # connect slots
         self.ui.gbxAction.applyButton.connect(
@@ -150,22 +153,26 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         )
         self.ui.inputw.inputSelector.connect(
             "currentNodeChanged(vtkMRMLNode*)",
-            self.buttonStateChange
+            self.inputSelectChange
         )
         self.ui.outputw.outputSelector.connect(
             "currentNodeChanged(vtkMRMLNode*)",
-            self.buttonStateChange
+            self.outputSelectChange
+        )
+        self.ui.segmentw.segmentSelector.connect(
+            "currentNodeChanged(vtkMRMLNode*)",
+            self.outputSelectChange
         )
         self.ui.gbxDisplay.f1.showSliderWidget.connect(
             "valueChanged(double)",
-            self.showSlices
+            self.changeDisplay
         )
 
         # Add vertical spacer
         self.layout.addStretch(1)
 
         # Refresh components states
-        self.buttonStateChange()
+        self.inputSelectChange()
         self.rangeInitial()
 
         pass
@@ -174,22 +181,34 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         self.client.__del__()
         pass
 
-    def buttonStateChange(self):
-        """reset the button accesses"""
+    def inputSelectChange(self):
         self.ui.applyButton.enabled = self.ui.inputw.inputSelector.currentNode(
-        ) and self.ui.outputw.outputSelector.currentNode()
+        ) and self.ui.outputw.outputSelector.currentNode(
+        ) and self.ui.segmentw.segmentSelector.currentNode()
         self.ui.divideButton.enabled = self.resultGet
         self.ui.gbxDisplay.enabled = self.resultGet
         self.rangeInitial()
+        pass
 
+    def outputSelectChange(self):
+        """reset the button accesses"""
+        self.ui.applyButton.enabled = self.ui.inputw.inputSelector.currentNode(
+        ) and self.ui.outputw.outputSelector.currentNode(
+        ) and self.ui.segmentw.segmentSelector.currentNode()
+        self.ui.divideButton.enabled = self.resultGet
+        self.ui.gbxDisplay.enabled = self.resultGet
         pass
 
     def rangeInitial(self):
+        """Initialize the Slicing Part"""
         sliceRange = self.ui.slicing.sliceRange
         sliceRange.minimum = 0
-        sliceRange.maximum = arrayFromVolume(
-            self.ui.inputw.inputSelector.currentNode()
-        ).shape[0]
+        if self.ui.inputw.inputSelector.currentNode():
+            sliceRange.maximum = arrayFromVolume(
+                self.ui.inputw.inputSelector.currentNode()
+            ).shape[0]
+        else:
+            sliceRange.maximum = 99
 
         sliceRange.minimumValue = sliceRange.minimum
         sliceRange.maximumValue = sliceRange.maximum
@@ -221,18 +240,17 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
                                       self.client,
                                       inputInfo)
         self.resultGet = True
-        self.buttonStateChange()
+        self.outputSelectChange()
 
-        # set the volume
-        outputVolume = self.ui.outputw.outputSelector.currentNode()
-        outputVolume.CreateDefaultDisplayNodes()
-        updateVolumeFromArray(outputVolume, self.resData["slices"])
+        # set the slice volume
+        sliceVolume = self.ui.outputw.outputSelector.currentNode()
+        sliceVolume.CreateDefaultDisplayNodes()
+        updateVolumeFromArray(sliceVolume, self.resData["slices"])
 
-        # set the scene
+        # set the slice scene
         red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
-        red_cn = red_logic.GetSliceCompositeNode()
         red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            outputVolume.GetID()
+            sliceVolume.GetID()
         )
 
         show = self.ui.gbxDisplay.f1.showSliderWidget
@@ -240,23 +258,33 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
         # TODO: display the interpolated segmentation in the yellow/green scene.
 
+        # set the segment volume
+        segVolume = self.ui.segmentw.segmentSelector.currentNode()
+        segVolume.CreateDefaultDisplayNodes()
+        updateVolumeFromArray(segVolume, self.resData["segs"])
+
+        # set the segment scene
+        yellow_logic = slicer.app.layoutManager().sliceWidget("Yellow").sliceLogic()
+        yellow_logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+            segVolume.GetID()
+        )
+
         pass
 
     def onDivideButton(self):
         """we may need this."""
         pass
 
-    def showSlices(self):
-        """show the slices on the screen."""
+    def changeDisplay(self):
+        """change the MRML scene display."""
 
         layer = self.ui.gbxDisplay.f1.showSliderWidget.value
         self.ui.scorelineEdit.setText(self.getScore(int(layer)))
+        slicer.app.layoutManager().sliceWidget(
+            'Red').sliceLogic().SetSliceOffset(layer)
 
-        lm = slicer.app.layoutManager()
-        redLogic = lm.sliceWidget('Red').sliceLogic()
-        yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
-        greenLogic = lm.sliceWidget('Green').sliceLogic()
-        redLogic.SetSliceOffset(layer)
+        slicer.app.layoutManager().sliceWidget(
+            'Yellow').sliceLogic().SetSliceOffset(layer*5)
 
         pass
 
@@ -340,13 +368,15 @@ class CT_DetectLogic(ScriptedLoadableModuleLogic):
         # data post-processing
         npOutputData["slices"] *= 255
         npOutputData["segs"] *= 255
-        npOutputData["segs"] = self.segmentInterpolation(npOutputData["segs"])
+
+        # linear Interpolation
+        npOutputData["segs"] = arrayInterpolation(
+            npOutputData["segs"], inputInfo["spacing"])
+
+        tac = time.time()
+        logging.info('InterPolation time:' + str(tac - toc))
 
         return npOutputData
-
-    def segmentInterpolation(self, npSeg):
-        """Interpolation of the segmentation result"""
-        return npSeg
 
 
 class CT_DetectTest(ScriptedLoadableModuleTest):
