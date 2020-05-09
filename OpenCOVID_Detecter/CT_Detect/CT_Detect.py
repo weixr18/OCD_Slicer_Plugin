@@ -52,8 +52,6 @@ class Client():
 
     def __init__(self):
 
-        # Set up a subprocess
-
         # Clear the python paths
         if 'PYTHONPATH' in os.environ:
             del os.environ['PYTHONPATH']
@@ -70,6 +68,8 @@ class Client():
         dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
         absScriptPath = dirPath + '/' + scriptPath
         cmd_work_path = r'D:\Codes\_Projects\Covid\OCD_Slicer_Plugin'
+
+        # Set up a subprocess
 
         self.proc = subprocess.Popen(
             [tmp_interpreterPath, absScriptPath,
@@ -102,7 +102,6 @@ class Client():
 
         # receive data
         returnData = pickle.loads(self.serverSocket.recv(200000000))
-
         return returnData
 
     pass

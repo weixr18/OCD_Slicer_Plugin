@@ -33,18 +33,18 @@ def get_path(np_image_root, np_mask_lung_root):
     return np_images, masks
 
 
-def preprocess(np_lung,
-               padding,
-               start_pos,
-               end_pos,
-               spacing):
+def preprocess(np_lung, padding,
+               start_pos, end_pos, spacing):
+
+    end_pos = min(end_pos, np_lung.shape[0])
+    padding = (end_pos - start_pos) // spacing
+    np_lung = np_lung[start_pos:end_pos, :, :]
 
     print("padding, start_pos, end_pos, spacing:")
     print(padding, start_pos, end_pos, spacing)
+    print("max min: ", np_lung.max(), np_lung.min())
 
-    np_lung = np_lung[start_pos:end_pos, :, :]
-
-    TOP = 1200
+    TOP = 2400
     FLOOR = -700
 
     np_lung[np_lung > TOP] = TOP
@@ -61,7 +61,7 @@ def preprocess(np_lung,
 
     sliced_image = sliced_image[:padding]
 
-    return sliced_image, padding
+    return sliced_image
 
 
 def concatenate(np_lung, np_mask, padding):

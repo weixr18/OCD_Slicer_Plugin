@@ -57,12 +57,13 @@ class DT_Server():
             print("----------------Image get----------------")
 
             # 获取mask
-            lung_image, padding = preprocess(lung_image,
-                                             start_pos=info['start_pos'],
-                                             end_pos=info['end_pos'],
-                                             spacing=info['spacing'],
-                                             padding=info['padding'])
+            lung_image = preprocess(lung_image,
+                                    start_pos=info['start_pos'],
+                                    end_pos=info['end_pos'],
+                                    spacing=info['spacing'],
+                                    padding=info['padding'])
             np_mask = gen_mask(lung_image)
+            padding = info['padding']
 
             print("----------------Mask get----------------")
 
