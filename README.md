@@ -14,3 +14,14 @@ Our algorithms are still being tested and optimized. After the algorithm has mat
 ## Contributors
 
 Xinran Wei, WeiXiang Chen, PeiYi Han, Kaiwen Men, Bolun Liu.
+
+## Required Packages
+
++ nibabel==3.1.0
++ opencv-python==4.1.1.26
++ torch==1.1.0
++ torchvision==0.3.0
++ Pillow==6.2.1
++ pydicom==1.4.2
++ numpy==1.15.3
++ PyQt5==5.14.2
