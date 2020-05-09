@@ -77,42 +77,6 @@ def gen_mask(data):
     return mask
 
 
-"""
-def show_mask(mask):
-    plt.imshow(mask * 255, cmap='gray')
-    plt.show()
-"""
-
 if __name__ == "__main__":
-
-    """
-    for i in range(5):
-        raw_CT = get_data('./output/' + str(i) + '.npy')
-        plt.subplot(1, 2, 1)
-        plt.imshow(raw_CT, cmap='gray')
-
-        mask = get_mask(raw_CT)
-        plt.subplot(1, 2, 2)
-        plt.imshow(mask * 255, cmap='gray')
-        plt.savefig('./output/' + str(i) + '.jpg')
-        plt.show()
-
-
-    if Old_versions:
-        # 闭运算整形
-        kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
-        mask_3 = cv2.dilate(mask_2, kernel2)  # 膨胀
-        mask_4 = cv2.erode(mask_3, kernel2)  # 腐蚀
-        show_mask(mask_4)
-
-        # 最大连通域
-        max_idx = np.argmax([cv2.contourArea(cnt)
-                            for cnt in contours])  # 最大连通域index
-        mask_4 = np.zeros([mask_3.shape[0], mask_3.shape[1]])
-        cv2.drawContours(mask_4, contours, max_idx, 1, cv2.FILLED)  # 最大连通域填充
-        mask_3 = mask_4 * mask_3
-        show_mask(mask_4)
-        show_mask(mask_3)
-    """
 
     pass

@@ -1,11 +1,9 @@
 # python 3.6
 # Contributors: Xinran Wei, Weixiang Chen
-import glob
 import torch
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 
 transform = transforms.Compose([  # transforms.ToPILImage(),
     transforms.Resize(256),
@@ -19,18 +17,6 @@ def temporary(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
-
-
-@temporary
-def get_path(np_image_root, np_mask_lung_root):
-    np_images = []
-    masks = []
-    # 读取肺部CT/mask路径
-    if isinstance(np_image_root, list):
-        for r1, r2 in zip(np_image_root, np_mask_lung_root):
-            np_images += glob.glob(r1 + '/*.n*')
-            masks += glob.glob(r2 + '/*.n*')
-    return np_images, masks
 
 
 def preprocess(np_lung, padding,

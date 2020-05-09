@@ -14,6 +14,7 @@ from Utils.data_py3 import concatenate, preprocess
 from Utils.segment_py3 import gen_mask
 import Utils.detect_py3 as detect_py3
 
+DEBUG = True
 
 if sys.getdefaultencoding() != 'utf-8':
     reload(sys)
@@ -76,7 +77,7 @@ class DT_Server():
             # 发回client
             self.ClientSocket.send(pickle.dumps(res, protocol=2))
 
-            if SHOW_RES:
+            if DEBUG and SHOW_RES:
                 ROWS = 2
                 SAMPLE_NUM = 3
                 for i in range(SAMPLE_NUM):

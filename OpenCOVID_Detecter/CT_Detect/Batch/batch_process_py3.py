@@ -4,7 +4,6 @@ import pydicom
 import numpy as np
 import os
 import sys
-import matplotlib.pyplot as plt
 
 if True:
     o_path = os.path.realpath(__file__)
@@ -34,8 +33,11 @@ def read_dicom_by_path(case_dir):
         slc = np.reshape(slc, [rows, cols])
         slices.append(slc)
 
-    slices = np.array(slices)
-    return slices
+    if slices == []:
+        return None
+    else:
+        slices = np.array(slices)
+        return slices
 
 
 def get_res(lung_image, info, use_cuda):

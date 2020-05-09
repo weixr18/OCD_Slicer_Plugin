@@ -17,10 +17,12 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(Form)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.main = QtWidgets.QWidget(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.main.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.main.sizePolicy().hasHeightForWidth())
         self.main.setSizePolicy(sizePolicy)
         self.main.setObjectName("main")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.main)
@@ -28,10 +30,12 @@ class Ui_Form(object):
         self.b1 = QtWidgets.QHBoxLayout()
         self.b1.setObjectName("b1")
         self.label = QtWidgets.QLabel(self.main)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
         self.label.setObjectName("label")
         self.b1.addWidget(self.label)
@@ -62,7 +66,8 @@ class Ui_Form(object):
         self.verticalLayout.addLayout(self.b2)
         self.b3 = QtWidgets.QHBoxLayout()
         self.b3.setObjectName("b3")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.b3.addItem(spacerItem)
         self.table = QtWidgets.QTableWidget(self.main)
         self.table.setMinimumSize(QtCore.QSize(0, 250))
@@ -70,12 +75,14 @@ class Ui_Form(object):
         self.table.setColumnCount(0)
         self.table.setRowCount(0)
         self.b3.addWidget(self.table)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.b3.addItem(spacerItem1)
         self.verticalLayout.addLayout(self.b3)
         self.b4 = QtWidgets.QHBoxLayout()
         self.b4.setObjectName("b4")
-        spacerItem2 = QtWidgets.QSpacerItem(400, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            400, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         self.b4.addItem(spacerItem2)
         self.start = QtWidgets.QPushButton(self.main)
         self.start.setObjectName("start")
