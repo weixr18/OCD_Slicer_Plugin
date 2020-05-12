@@ -19,7 +19,7 @@ import socket
 import sys
 import pickle
 
-import Front.data_front.arrayInterpolation as arrayInterpolation
+from Front.data_front import arrayInterpolation
 
 #
 # CT_Detect
