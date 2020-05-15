@@ -9,42 +9,49 @@ import argparse
 import pickle
 import traceback
 
-
 SHOW_RES = False
 if sys.getdefaultencoding() != 'utf-8':
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
 
+def unzip_file(zip_src, dst_dir):
+    import zipfile
+    r = zipfile.is_zipfile(zip_src)
+    if r:
+        fz = zipfile.ZipFile(zip_src, 'r')
+        for file in fz.namelist():
+            fz.extract(file, dst_dir)
+    else:
+        print('This is not zip')
+
+
 def load_modules():
-
-    dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
-    if (sys.version.find('64 bit') > 0):
-        include_path = dirPath + '/../../../Tools/required/required-amd64'
-    else:
-        include_path = dirPath + '/../../../Tools/required/required-win32'
-
-    zip_path = include_path + '.zip'
-    if not os.path.exists(include_path):
-        os.mkdir(include_path)
-        print("Unzip files...")
-        unzip_file(zip_path, '/'.join(include_path.split('/')[:-1]))
-
-    if (sys.version.find('64 bit') > 0):
-        sys.path.insert(0, dirPath + '/../../../Tools/required/required-amd64')
-        print("64 bit")
-    else:
-        sys.path.insert(0, dirPath + '/../../../Tools/required/required-win32')
-        print("32 bit")
-    print(dirPath)
-    sys.path.insert(0, dirPath)
-
-    import numpy as np
-    print("numpy:", np.__version__)
-    import nibabel as nib
-    print("nibabel:", nib.__version__)
-
+    """load every module the project needs"""
     try:
+        dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
+        if (sys.version.find('64 bit') > 0):
+            include_path = dirPath + '/../../../Tools/required/required-amd64'
+        else:
+            include_path = dirPath + '/../../../Tools/required/required-win32'
+
+        zip_path = include_path + '.zip'
+        if not os.path.exists(include_path):
+            os.mkdir(include_path)
+            print("Unzip files...")
+            unzip_file(zip_path, '/'.join(include_path.split('/')[:-1]))
+
+        if (sys.version.find('64 bit') > 0):
+            sys.path.insert(
+                0, dirPath + '/../../../Tools/required/required-amd64')
+        else:
+            sys.path.insert(
+                0, dirPath + '/../../../Tools/required/required-win32')
+        sys.path.insert(0, dirPath)
+
+        import numpy as np
+        import nibabel as nib
+
         from data_py3 import concatenate, preprocess
         from segment_py3 import gen_mask
         import detect_py3
