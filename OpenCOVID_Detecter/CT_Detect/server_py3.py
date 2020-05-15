@@ -1,18 +1,30 @@
 # python 3.6
 # Contributors: Xinran Wei, PeiYi Han
-import time
-import socket
-import sys
-import numpy as np
-import pickle
-import nibabel as nib
-import logging
-import argparse
-import matplotlib.pyplot as plt
 
-from Utils.data_py3 import concatenate, preprocess
-from Utils.segment_py3 import gen_mask
-import Utils.detect_py3 as detect_py3
+import sys
+
+if(sys.version.find('64 bit') > 0):
+    sys.path.append('../../Tools/required/required-amd64.zip')
+else:
+    sys.path.append('../../Tools/required/required-win32.zip')
+
+if True:
+    import numpy as np
+    print(np.__version__)
+
+if True:
+    import time
+    import socket
+    import numpy as np
+    import pickle
+    import nibabel as nib
+    import logging
+    import argparse
+    import matplotlib.pyplot as plt
+
+    from Utils.data_py3 import concatenate, preprocess
+    from Utils.segment_py3 import gen_mask
+    import Utils.detect_py3 as detect_py3
 
 DEBUG = True
 

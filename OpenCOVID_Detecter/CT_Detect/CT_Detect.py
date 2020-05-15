@@ -1,7 +1,5 @@
 # python 2.7
 # Contributors: Xinran Wei, PeiYi Han, Kaiwen Men
-import os
-import sys
 import time
 
 import unittest
@@ -16,7 +14,6 @@ import logging
 import numpy as np
 import subprocess
 import socket
-import sys
 import pickle
 
 from Front.data_front import arrayInterpolation
@@ -52,7 +49,8 @@ class Client():
 
     def __init__(self):
 
-        # Clear the python paths
+        # Clear the python envs
+        import os
         if 'PYTHONPATH' in os.environ:
             del os.environ['PYTHONPATH']
         if 'PYTHONHOME' in os.environ:
@@ -60,21 +58,26 @@ class Client():
         if 'PYTHONNOUSERSITE' in os.environ:
             del os.environ['PYTHONNOUSERSITE']
 
-        tmp_interpreterPath = r'E:\Anaconda3\envs\COVID\python.exe'
-        # TODO: pack a python3.6 interpreter with site-packages
-        # in the release version
-
         scriptPath = "./server_py3.py"
         dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
         absScriptPath = dirPath + '/' + scriptPath
-        cmd_work_path = r'D:\Codes\_Projects\Covid\OCD_Slicer_Plugin'
+        # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detet/server_py.py3'
+        cmdWorkPath = dirPath + '/' + '../../'
+        # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detet/'
+
+        import sys
+        if(sys.version.find('64 bit') > 0):
+            python3Path = dirPath + '/../../Tools/python/python-3.6.2-embed-amd64/python.exe'
+        else:
+            python3Path = dirPath + '/../../Tools/python/python-3.6.2-embed-win32/python.exe'
+
+        # '.../OCD_Slicer_Plugin/Tools/python/python.exe'
 
         # Set up a subprocess
-
         self.proc = subprocess.Popen(
-            [tmp_interpreterPath, absScriptPath,
+            [python3Path, absScriptPath,
              "--use_cuda", str(USE_CUDA)],
-            cwd=cmd_work_path,
+            cwd=cmdWorkPath,
             bufsize=1,
             shell=False,
         )
