@@ -58,10 +58,10 @@ class Client():
         if 'PYTHONNOUSERSITE' in os.environ:
             del os.environ['PYTHONNOUSERSITE']
 
-        scriptPath = "./server_py3.py"
+        scriptPath = "./Utils/server_py3.py"
         dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-1])
         absScriptPath = dirPath + '/' + scriptPath
-        # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detet/server_py.py3'
+        # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detect/Uitls/server_py.py3'
         cmdWorkPath = dirPath + '/' + '../../'
         # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detet/'
 
@@ -70,8 +70,6 @@ class Client():
             python3Path = dirPath + '/../../Tools/python/python-3.6.2-embed-amd64/python.exe'
         else:
             python3Path = dirPath + '/../../Tools/python/python-3.6.2-embed-win32/python.exe'
-
-        # '.../OCD_Slicer_Plugin/Tools/python/python.exe'
 
         # Set up a subprocess
         self.proc = subprocess.Popen(
@@ -85,7 +83,6 @@ class Client():
 
         # open the socket
         time.sleep(10)
-
         self.serverAddress = ('127.0.0.1', 31500)
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serverSocket.connect(self.serverAddress)

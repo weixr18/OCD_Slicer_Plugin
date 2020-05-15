@@ -1,16 +1,18 @@
 # python 3.6
 # Contributors: Xinran Wei, Weixiang Chen
-import torch
 import numpy as np
 from PIL import Image
-import torchvision.transforms as transforms
+# import torch
+# import torchvision.transforms as transforms
 
+"""
 transform = transforms.Compose([  # transforms.ToPILImage(),
     transforms.Resize(256),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize([0, 0, 0], [1, 1, 1])
 ])
+"""
 
 
 def temporary(func):

@@ -4,16 +4,13 @@
 import os
 import sys
 import time
-
-import torch
-import numpy as np
-import torch.nn as nn
-from torch.autograd import Variable
 import argparse
 
-
-from .net2d_py3 import resnet152
-# from .grad_cam_py3 import get_CAM
+import numpy as np
+# import torch
+# import torch.nn as nn
+# from torch.autograd import Variable
+# from net2d_py3 import resnet152
 
 
 MODEL_PATH = '../model/classify_model.pt'

@@ -1,13 +1,15 @@
 # python 3.6
 # Contributors: Weixiang Chen,
 from __future__ import print_function, division, absolute_import
+import re
+import types
+
+import torch
+import torch.nn as nn
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 import torch.nn.functional as F
-import types
-import torch
-import re
-import torch.nn as nn
+
 
 #################################################################
 # You can find the definitions of those models here:
