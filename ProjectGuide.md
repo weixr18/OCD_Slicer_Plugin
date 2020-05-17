@@ -40,7 +40,10 @@ OCD_Slicer_Plugin是一个slicer插件项目，通过对识别病人肺部CT图�
         + MRMLScene自动定位至图像中心
         + 分割scene（黄色）展示方向自动设置为axial
         + 分割算法不稳定问题（会影响部分切片的打分）
-    
+    + Release
+        + 需定期保持和master同步
+        + python解释器自动解压
+        + 依赖库自动解压问题
 
 ### 2.3 未来需求
 
