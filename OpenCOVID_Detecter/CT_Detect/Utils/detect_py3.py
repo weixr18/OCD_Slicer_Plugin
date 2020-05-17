@@ -38,6 +38,7 @@ def classify_CT(model, data, use_cuda=True):
     """return the classify scores of the CT slices"""
     output = None
     data = torch.tensor(data, dtype=torch.float32)
+    print("use_cuda", use_cuda)
 
     if use_cuda:
         with torch.no_grad():
@@ -59,7 +60,8 @@ def classify_CT(model, data, use_cuda=True):
             output = net(input)
 
         if output is not None:
-            return output.cpu().numpy()
+            output = output.numpy()
+            return output
 
 
 def process(numpy_image, use_cuda=True):
@@ -70,7 +72,7 @@ def process(numpy_image, use_cuda=True):
 
     # Predict scores
     prediction = classify_CT(model, numpy_image, use_cuda=use_cuda)
-    slice_scores = np.argmax(prediction, axis=1)
+    slice_scores = np.exp(prediction)[:, 1]
 
     # results
     mean_score = np.mean(np.sort(slice_scores)[-3:])

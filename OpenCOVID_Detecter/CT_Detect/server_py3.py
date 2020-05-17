@@ -71,7 +71,7 @@ class DT_Server():
             # 进行预测
             cnn_input = concatenate(lung_image, np_mask, padding)
             res = detect_py3.process(cnn_input, use_cuda=self.use_cuda)
-            print('slice_scores:', res['slice_scores'])
+            print('slice_scores:\n', res['slice_scores'])
             print("----------------Prediction done----------------")
 
             # 发回client
