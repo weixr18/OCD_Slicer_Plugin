@@ -65,6 +65,9 @@ class Client():
         cmdWorkPath = dirPath + '/' + '../../'
         # '.../OCD_Slicer_Plugin/OpenCOVID_Detecter/CT_Detet/'
 
+        dllpath = dirPath + '/' + "../../Tools/required/required-amd64/Library/;"
+        os.environ['PATH'] += dllpath
+
         import sys
         if(sys.version.find('64 bit') > 0):
             python3Path = dirPath + '/../../Tools/python/python-3.6.2-embed-amd64/python.exe'

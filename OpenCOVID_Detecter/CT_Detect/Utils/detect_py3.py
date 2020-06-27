@@ -7,10 +7,10 @@ import time
 import argparse
 
 import numpy as np
-# import torch
-# import torch.nn as nn
-# from torch.autograd import Variable
-# from net2d_py3 import resnet152
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+from net2d_py3 import resnet152
 
 
 MODEL_PATH = '../model/classify_model.pt'

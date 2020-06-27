@@ -48,13 +48,6 @@ def load_modules():
             sys.path.insert(
                 0, dirPath + '/../../../Tools/required/required-win32')
         sys.path.insert(0, dirPath)
-
-        import numpy as np
-        import nibabel as nib
-
-        from data_py3 import concatenate, preprocess
-        from segment_py3 import gen_mask
-        import detect_py3
     except Exception as e:
         traceback.print_exc()
 
@@ -73,6 +66,7 @@ class DT_Server():
         print('Initialize succesful.')
 
         self.use_cuda = use_cuda
+
         pass
 
     def __del__(self):
@@ -81,6 +75,13 @@ class DT_Server():
 
     def run(self):
         """主函数"""
+
+        import numpy as np
+        import nibabel as nib
+
+        from data_py3 import concatenate, preprocess
+        from segment_py3 import gen_mask
+        import detect_py3
 
         while True:
 
