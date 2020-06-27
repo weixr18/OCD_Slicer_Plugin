@@ -124,6 +124,22 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         # state flag
         self.resultGet = False
         self.resData = False
+        self.resTag = [False for i in range(36)]
+
+        # style sheet colors
+        self.styleSheetColors = {
+            0: "red",
+            1: "green",
+            2: "yellow",
+            3: "brown",
+            4: "orange",
+            5: "pink",
+            6: "purple",
+            7: "ivory",
+            8: "coffee",
+            9: "red",
+        }
+
         pass
 
     def setup(self):
@@ -166,9 +182,25 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             "valueChanged(double)",
             self.changeDisplay
         )
-
+        self.ui.gbxDisplay.f3.checkBoxSelect.connect(
+            "clicked(bool)",
+            self.changeSelect
+        )
+        self.ui.gbxDisplay.f3.pushButtonClear.connect(
+            "clicked(bool)",
+            self.clearSelect
+        )
+        self.ui.gbxDisplay.colordisplay.connect(
+            "setValue(int)",
+            self.colorprocess
+        )
         # Add vertical spacer
         self.layout.addStretch(1)
+
+        # set value of progressBar
+        self.ui.gbxDisplay.colordisplay.setValue(0)
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:blue}")
 
         # Refresh components states
         self.inputSelectChange()
@@ -240,6 +272,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
                                       inputInfo)
         self.resultGet = True
         self.outputSelectChange()
+        self.resTag = [False for i in range(len(self.resData["slice_scores"]))]
 
         # set the slice volume
         sliceVolume = self.ui.outputw.outputSelector.currentNode()
@@ -267,6 +300,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         yellow_logic.GetSliceCompositeNode().SetBackgroundVolumeID(
             segVolume.GetID()
         )
+        self.clearSelect()
 
         pass
 
@@ -274,17 +308,63 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         """we may need this."""
         pass
 
+    def setColorDisplay(self, layer):
+        """
+        if self.getScore(int(layer)) <= 10
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:red}")
+        else if self.getScore(int(layer)) > 10 & self.getScore(int(layer)) <= 20
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:green}")
+        else if self.getScore(int(layer)) > 20 & self.getScore(int(layer)) <= 30
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:yellow}")
+        else if self.getScore(int(layer)) > 30 & self.getScore(int(layer)) <= 40
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:brown}")
+        else if self.getScore(int(layer)) > 40 & self.getScore(int(layer)) <= 50
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:orange}")
+        else if self.getScore(int(layer)) > 50 & self.getScore(int(layer)) <= 60
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:pink}")
+        else if self.getScore(int(layer)) > 60 & self.getScore(int(layer)) <= 70
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:purple}")
+        else if self.getScore(int(layer)) > 70 & self.getScore(int(layer)) <= 80
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:ivory}")
+        else if self.getScore(int(layer)) > 80 & self.getScore(int(layer)) <= 90
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:coffee}")
+        else if self.getScore(int(layer)) > 90 & self.getScore(int(layer)) <= 100
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(
+            "QProgressBar{background:white;} QProgressBar::chunk{background:red}")
+        """
+        pass
+
     def changeDisplay(self):
         """change the MRML scene display."""
 
+        # display change
         layer = self.ui.gbxDisplay.f1.showSliderWidget.value
-        self.ui.scorelineEdit.setText(self.getScore(int(layer)))
+        self.ui.scorelineEdit.setText(self.getScore(int(layer)-1))
         slicer.app.layoutManager().sliceWidget(
             'Red').sliceLogic().SetSliceOffset(layer)
-
         slicer.app.layoutManager().sliceWidget(
             'Yellow').sliceLogic().SetSliceOffset(layer*5)
 
+        # checkbox change
+        self.ui.gbxDisplay.f3.checkBoxSelect.setChecked(
+            self.resTag[int(layer) - 1])
+
+        # color display change
+        self.ui.gbxDisplay.colordisplay.setValue(self.getScore(int(layer)))
+        level = int(self.getScore(int(layer)) * 10)
+        styleSheet = "QProgressBar{background:white;} QProgressBar::chunk{background:" + \
+            self.styleSheetColors[level] + "}"
+        self.ui.gbxDisplay.colordisplay.setStyleSheet(styleSheet)
+        # print(styleSheet)
         pass
 
     def getScore(self, layer):
@@ -297,8 +377,36 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
         return self.resData["slice_scores"][layer]
 
-    pass  # end class
+    def changeSelect(self):
+        layer = self.ui.gbxDisplay.f1.showSliderWidget.value
+        self.resTag[int(layer) - 1] = ~self.resTag[int(layer) - 1]
+        self.ui.gbxDisplay.f3.checkBoxSelect.setChecked(
+            self.resTag[int(layer) - 1])
 
+        resNum = len(self.resData["slice_scores"])
+        selected_scores = [self.resData["slice_scores"][i]
+                           for i in range(resNum) if not self.resTag[i]]
+        ave = np.average(selected_scores)
+        self.ui.gbxDisplay.f2.averagescore.setText(ave)
+        pass
+
+    def clearSelect(self):
+        layer = self.ui.gbxDisplay.f1.showSliderWidget.value
+        self.resTag = [False for i in range(len(self.resData["slice_scores"]))]
+        self.ui.gbxDisplay.f3.checkBoxSelect.setChecked(
+            self.resTag[int(layer) - 1])
+
+        resNum = len(self.resData["slice_scores"])
+        selected_scores = [self.resData["slice_scores"][i]
+                           for i in range(resNum) if not self.resTag[i]]
+        ave = np.average(selected_scores)
+        self.ui.gbxDisplay.f2.averagescore.setText(ave)
+        pass
+
+    def colorprocess(self):
+        """display score as different color"""
+        self.ui.gbxDisplay.colordisplay.setValue(self.getScore(int(layer)))
+    pass  # end class
 
 #
 # CT_DetectLogic
