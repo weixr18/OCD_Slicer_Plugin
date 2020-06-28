@@ -13,7 +13,7 @@ from torch.autograd import Variable
 from net2d_py3 import resnet152
 
 
-MODEL_PATH = '../model/classify_model.pt'
+MODEL_PATH = './Model/classify_model.pt'
 dirPath = '/'.join(os.path.realpath(__file__).split('\\')[:-2])
 ABS_MODEL_PATH = dirPath + '/' + MODEL_PATH
 
@@ -35,6 +35,7 @@ def classify_CT(model, data, use_cuda=True):
     """return the classify scores of the CT slices"""
     output = None
     data = torch.tensor(data, dtype=torch.float32)
+    print("use_cuda", use_cuda)
 
     if use_cuda:
         with torch.no_grad():
@@ -67,7 +68,7 @@ def process(numpy_image, use_cuda=True):
 
     # Predict scores
     prediction = classify_CT(model, numpy_image, use_cuda=use_cuda)
-    slice_scores = np.argmax(prediction, axis=1)
+    slice_scores = np.exp(prediction)[:, 1]
 
     # results
     mean_score = np.mean(np.sort(slice_scores)[-3:])

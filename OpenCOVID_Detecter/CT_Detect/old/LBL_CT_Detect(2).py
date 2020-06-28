@@ -129,7 +129,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         self.resData = False
         self.resTag = [False for i in range(36)]
 
-        # style sheet colors
+        '''# style sheet colors
         self.styleSheetColors = {
             0: "red",
             1: "green",
@@ -142,7 +142,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             8: "coffee",
             9: "red",
             10: "red",
-        }
+        }'''
 
         pass
 
@@ -204,7 +204,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
         # set value of progressBar
         self.ui.gbxDisplay.colordisplay.setValue(0)
         self.ui.gbxDisplay.colordisplay.setStyleSheet(
-            "QProgressBar{background:white;} QProgressBar::chunk{background:blue}")
+            "QProgressBar{background:white;} QProgressBar::chunk{background:rgb(255,0,0)}")
 
         # Refresh components states
         self.inputSelectChange()
@@ -329,10 +329,8 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
         # color display change
         self.ui.gbxDisplay.colordisplay.setValue(self.getScore(int(layer)))
-        level = int(self.getScore(int(layer)) * 10)
-        styleSheet = "QProgressBar{background:white;} QProgressBar::chunk{background:" + \
-            self.styleSheetColors[level] + "}"
-        self.ui.gbxDisplay.colordisplay.setStyleSheet(styleSheet)
+        level = 255-int(self.getScore(int(layer)) * 100)
+        self.ui.gbxDisplay.colordisplay.setStyleSheet("QProgressBar{background:white;} QProgressBar::chunk{background:rgb(255,0,0)}")
         print(styleSheet)
         pass
 
