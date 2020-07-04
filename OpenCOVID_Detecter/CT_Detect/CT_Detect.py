@@ -27,7 +27,7 @@ class CT_Detect(ScriptedLoadableModule):
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = "CT_Detect"
-        self.parent.categories = ["COVID Detect"]
+        self.parent.categories = ["COVID Research Tools"]
         self.parent.dependencies = []
         self.parent.contributors = ["XinRan Wei, Kaiwen Men, PeiYi Han, BoLun Liu, \
                                     WeiXiang Chen, (Tsinghua Univ.)"]
@@ -274,6 +274,9 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
                                       self.ui.outputw.outputSelector.currentNode(),
                                       self.client,
                                       inputInfo)
+
+        # l = list(range(0, 100))
+        # self.resData = {"slice_scores": [ll/100 for ll in l]}
         self.resultGet = True
         self.outputSelectChange()
         self.resTag = [False for i in range(len(self.resData["slice_scores"]))]
@@ -328,7 +331,7 @@ class CT_DetectWidget(ScriptedLoadableModuleWidget):
             self.resTag[int(layer) - 1])
 
         # color display change
-        self.ui.gbxDisplay.colordisplay.setValue(self.getScore(int(layer)))
+        self.ui.gbxDisplay.colordisplay.setValue(self.getScore(int(layer))*100)
         level = int(self.getScore(int(layer)) * 10)
         styleSheet = "QProgressBar{background:white;} QProgressBar::chunk{background:" + \
             self.styleSheetColors[level] + "}"
