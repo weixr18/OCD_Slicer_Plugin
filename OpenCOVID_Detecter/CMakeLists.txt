@@ -21,6 +21,7 @@ include(${Slicer_USE_FILE})
 # Extension modules
 add_subdirectory(CT_Detect)
 add_subdirectory(CT_Annotate)
+add_subdirectory(CT_Characteristic)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
