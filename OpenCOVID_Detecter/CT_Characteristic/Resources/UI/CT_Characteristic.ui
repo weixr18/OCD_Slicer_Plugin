@@ -47,30 +47,67 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Input Volume:</string>
+            <string>Input Folder</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="qMRMLNodeComboBox" name="inputSelector">
-           <property name="toolTip">
-            <string>Pick the output to the algorithm.</string>
+          <widget class="ctkPathLineEdit" name="PathLineEdit">
+           <property name="filters">
+            <set>ctkPathLineEdit::Dirs|ctkPathLineEdit::NoDot|ctkPathLineEdit::NoDotDot</set>
            </property>
-           <property name="nodeTypes">
-            <stringlist>
-             <string>vtkMRMLScalarVolumeNode</string>
-            </stringlist>
+           <property name="currentPath">
+            <string/>
            </property>
-           <property name="showChildNodeTypes">
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="id" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>10</height>
+         </size>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_7">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Current File</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="idSpinBox">
+           <property name="readOnly">
             <bool>false</bool>
            </property>
-           <property name="noneEnabled">
-            <bool>true</bool>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="addEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="removeEnabled">
+           <property name="readOnly">
             <bool>true</bool>
            </property>
           </widget>
@@ -83,19 +120,27 @@
    </item>
    <item>
     <widget class="QGroupBox" name="zybz">
+     <property name="font">
+      <font>
+       <underline>false</underline>
+      </font>
+     </property>
      <property name="title">
       <string>主要病灶</string>
      </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <layout class="QVBoxLayout" name="left">
+       <layout class="QVBoxLayout" name="lleft">
         <item>
          <layout class="QVBoxLayout" name="bblx">
           <property name="topMargin">
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="bblx_">
             <property name="text">
              <string>病变类型（多选）</string>
             </property>
@@ -137,7 +182,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="bbfb_">
             <property name="text">
              <string>病变分布（多选）</string>
             </property>
@@ -172,7 +217,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="bzdx_">
             <property name="text">
              <string>病灶大小</string>
             </property>
@@ -211,7 +256,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="right">
+       <layout class="QVBoxLayout" name="rright">
         <property name="topMargin">
          <number>0</number>
         </property>
@@ -221,7 +266,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="bbsm_">
             <property name="text">
              <string>病变数目</string>
             </property>
@@ -263,7 +308,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="bbwz_">
             <property name="text">
              <string>病变位置</string>
             </property>
@@ -331,7 +376,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_">
+           <widget class="QLabel" name="wgbh_">
             <property name="text">
              <string>微观变化（多选）</string>
             </property>
@@ -359,7 +404,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="qttz_">
             <property name="text">
              <string>其他特征（多选）</string>
             </property>
@@ -408,7 +453,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="qttz__">
             <property name="text">
              <string>其他特征（多选）</string>
             </property>
@@ -471,76 +516,72 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="dibu">
-     <item>
-      <widget class="QGroupBox" name="ypzd">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>阅片诊断</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QCheckBox" name="ypzd0">
-          <property name="text">
-           <string>甲乙流/CAP</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="ypzd1">
-          <property name="text">
-           <string>新冠</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="zdbw">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>诊断把握</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QCheckBox" name="zdbw0">
-          <property name="text">
-           <string>0-猜测，无把握</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="zdbw1">
-          <property name="text">
-           <string>1-有一定依据的推测</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="zdbw2">
-          <property name="text">
-           <string>2-把握程度较高</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QGroupBox" name="ypzd">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>阅片诊断</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="ypzd0">
+        <property name="text">
+         <string>甲乙流/CAP</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="ypzd1">
+        <property name="text">
+         <string>新冠</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QGroupBox" name="zdbw">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>诊断把握</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="zdbw0">
+        <property name="text">
+         <string>0-猜测，无把握</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="zdbw1">
+        <property name="text">
+         <string>1-有一定依据的推测</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="zdbw2">
+        <property name="text">
+         <string>2-把握程度较高</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="Save">
      <property name="text">
       <string>保存</string>
      </property>
@@ -550,9 +591,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>qMRMLNodeComboBox</class>
+   <class>ctkPathLineEdit</class>
    <extends>QWidget</extends>
-   <header>qMRMLNodeComboBox.h</header>
+   <header>ctkPathLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

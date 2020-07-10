@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# encoding: utf-8
+
 import os
 import unittest
 import vtk
@@ -6,6 +9,7 @@ import ctk
 import slicer
 from slicer.ScriptedLoadableModule import *
 import logging
+import json
 
 #
 # CT_Characteristic
@@ -35,48 +39,197 @@ class CT_Characteristic(ScriptedLoadableModule):
 #
 
 
+DICT = {
+
+    "bblx_": u"病变类型",
+    "bbfb_": u"病变分布",
+    "bzdx_": u"病灶大小",
+    "bbsm_": u"病变数目",
+    "bbwz_": u"病变位置",
+
+    "mbly": u"磨玻璃影",
+    "shb": u"实变",
+    "dmdy": u"低密度影",
+    "xxy": u"线性影",
+
+    "zy": u"中央",
+    "yzqgfb": u"沿支气管分布",
+    "xmfj": u"胸膜附近",
+
+    "jiejie": u"<3cm结节",
+    "bankuai": u"3-10cm斑块",
+    "dapian": u">10cm大片",
+    "msx": u"弥散性",
+
+    "danfa": u"单发",
+    "duofa24": u"2-4，多发",
+    "duofa5": u"5以上，多发",
+    "msx_2": u"弥散性2",
+
+    "zs": u"左上",
+    "zx": u"左下",
+    "ys": u"右上",
+    "yz": u"右中",
+    "yx": u"右下",
+
+    "wgbh_": u"微观变化",
+    "qttz_": u"其他特征",
+    "qttz__": u"其他特征",
+
+    "xyjgzh": u"小叶间隔增厚",
+    "xwzbtmd": u"细网状不透明度",
+
+    "zbzzwdjj": u"主病灶之外的结节",
+    "dmzc": u"动脉增粗",
+    "zqgbzh": u"支气管壁增厚",
+    "kqzqgz": u"空气支气管症",
+
+    "zbzzwdjj": u"主病灶之外的结节",
+    "dmzc": u"动脉增粗",
+    "zqgbzh": u"支气管壁增厚",
+    "kqzqgz": u"空气支气管症",
+
+    "plsz": u"铺路石征",
+    "yz_2": u"晕征",
+    "fyz": u"反晕征",
+    "xmzh": u"胸膜增厚",
+    "xqjy": u"胸腔积液",
+    "zgzh": u"纵膈增厚",
+    "xzxy": u"血坠效应",
+}
+
+
 class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
-    """Uses ScriptedLoadableModuleWidget base class, available at:
-    https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-    """
 
     def setup(self):
         # Father content setup
         ScriptedLoadableModuleWidget.setup(self)
 
+        # Logic Component Setup
+        self.logic = CT_CharacteristicLogic()
+
         # Load widget from .ui file (created by Qt Designer)
         uiWidget = slicer.util.loadUI(
-            self.resourcePath('UI/CT_Detect.ui'))
+            self.resourcePath('UI/CT_Characteristic.ui'))
         self.layout.addWidget(uiWidget)
         self.ui = slicer.util.childWidgetVariables(uiWidget)
-        self.ui.FileSelect.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
+        # self.ui.FileSelect.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
+
+        self.saveButton = self.ui.Save
+        self.fileDirSelector = self.ui.FileSelect.children()[1].PathLineEdit
 
         # connections
-        self.applyButton.connect('clicked(bool)', self.onApplyButton)
+        self.saveButton.connect('clicked(bool)', self.onSaveButton)
+        self.fileDirSelector.connect(
+            'currentPathChanged(QString)', self.onDirSelected)
+        """
         self.inputSelector.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
         self.outputSelector.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+        """
 
-        # Add vertical spacer
-        self.layout.addStretch(1)
-
-        # Refresh Apply button state
-        self.onSelect()
+        # enables
+        self.saveButton.setEnabled(self.fileDirSelector.currentPath == "\n")
 
     def cleanup(self):
         pass
 
-    def onSelect(self):
-        self.applyButton.enabled = self.inputSelector.currentNode(
-        ) and self.outputSelector.currentNode()
+    def onDirSelected(self, file_dir):
+        """文件夹选择后"""
 
-    def onApplyButton(self):
-        logic = CT_CharacteristicLogic()
-        enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-        imageThreshold = self.imageThresholdSliderWidget.value
-        logic.run(self.inputSelector.currentNode(
-        ), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
+        if file_dir is not '\n':
+            self.saveButton.setEnabled(True)
+            txt_path = file_dir + "/result.txt"
+
+            if os.path.exists(txt_path):
+                self.txt = open(txt_path, mode='r')
+                sample_json = self.txt.read()
+                self.txt.close()
+                self.res = json.loads(sample_json.decode("gb2312"))
+            else:
+                self.txt = open(txt_path, mode='w')
+                self.txt.close()
+                self.res = dict()
+
+            file_list = os.listdir(file_dir)
+
+            n_file_list = []
+            for f in file_list:
+                if f[-3:] is "nii":
+                    n_file_list.append(f)
+            file_list = n_file_list
+
+            print file_list
+        pass
+
+    def onSaveButton(self):
+        """点击保存按钮"""
+
+        # id
+        fs = self.ui.FileSelect.children()
+        file_dir = fs[1].PathLineEdit.currentPath
+        sample_id = fs[2].idSpinBox.value
+
+        # ZhuYaoBingZao
+        ZYBZ = list(self.ui.zybz.children())
+        n_ZYBZ = dict()
+        cur_list = []
+        for z in ZYBZ:
+            if str(z.__class__) == "<class 'PythonQt.QtGui.QLabel'>":
+                if DICT[z.objectName] not in n_ZYBZ:
+                    n_ZYBZ[DICT[z.objectName]] = []
+                cur_list = n_ZYBZ[DICT[z.objectName]]
+            elif str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
+                cur_list.append(DICT[z.objectName])
+
+        # QiTaZhengXiang
+        QTZX = list(self.ui.qtzx.children())
+        n_QTZX = dict()
+        cur_list = []
+        for z in QTZX:
+            if str(z.__class__) == "<class 'PythonQt.QtGui.QLabel'>":
+                if DICT[z.objectName] not in n_QTZX:
+                    n_QTZX[DICT[z.objectName]] = []
+                cur_list = n_QTZX[DICT[z.objectName]]
+            elif str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
+                cur_list.append(DICT[z.objectName])
+
+        # ZhenDuanHeBaWo
+        YPZD = list(self.ui.ypzd.children())
+        if YPZD[2].checked:
+            n_YPZD = 1
+        else:
+            n_YPZD = 0
+
+        ZDBW = list(self.ui.zdbw.children())
+        if ZDBW[1].checked:
+            n_ZDBW = 0
+        elif ZDBW[2].checked:
+            n_ZDBW = 1
+        else:
+            n_ZDBW = 2
+
+        self.res[sample_id] = {
+            u"主要病灶": n_ZYBZ,
+            u"其他征象": n_QTZX,
+            u"阅片诊断": n_YPZD,
+            u"诊断把握": n_ZDBW,
+        }
+
+        sample_json = json.dumps(
+            self.res,
+            sort_keys=True,
+            ensure_ascii=False
+        )
+
+        if hasattr(self, "txt"):
+            txt_path = self.fileDirSelector.currentPath + '/result.txt'
+            self.txt = open(txt_path, 'w')
+            self.txt.write(sample_json)
+            self.txt.close()
+
+        pass
 
 #
 # CT_CharacteristicLogic
@@ -84,14 +237,6 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
 
 
 class CT_CharacteristicLogic(ScriptedLoadableModuleLogic):
-    """This class should implement all the actual
-    computation done by your module.  The interface
-    should be such that other python code can import
-    this class and make use of the functionality without
-    requiring an instance of the Widget.
-    Uses ScriptedLoadableModuleLogic base class, available at:
-    https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-    """
 
     def hasImageData(self, volumeNode):
         """This is an example logic method that
