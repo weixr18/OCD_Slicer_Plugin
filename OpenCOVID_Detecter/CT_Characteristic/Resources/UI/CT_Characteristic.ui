@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>662</width>
-    <height>1066</height>
+    <height>1073</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -142,7 +142,7 @@
           <item>
            <widget class="QLabel" name="bblx_">
             <property name="text">
-             <string>病变类型（多选）</string>
+             <string>病变类型</string>
             </property>
            </widget>
           </item>
@@ -184,7 +184,7 @@
           <item>
            <widget class="QLabel" name="bbfb_">
             <property name="text">
-             <string>病变分布（多选）</string>
+             <string>病变分布</string>
             </property>
            </widget>
           </item>
@@ -219,7 +219,7 @@
           <item>
            <widget class="QLabel" name="bzdx_">
             <property name="text">
-             <string>病灶大小</string>
+             <string>病灶大小（单选）</string>
             </property>
            </widget>
           </item>
@@ -268,7 +268,7 @@
           <item>
            <widget class="QLabel" name="bbsm_">
             <property name="text">
-             <string>病变数目</string>
+             <string>病变数目（单选）</string>
             </property>
            </widget>
           </item>
@@ -310,7 +310,7 @@
           <item>
            <widget class="QLabel" name="bbwz_">
             <property name="text">
-             <string>病变位置</string>
+             <string>病变位置（单选）</string>
             </property>
            </widget>
           </item>
@@ -378,7 +378,7 @@
           <item>
            <widget class="QLabel" name="wgbh_">
             <property name="text">
-             <string>微观变化（多选）</string>
+             <string>微观变化</string>
             </property>
            </widget>
           </item>
@@ -406,7 +406,7 @@
           <item>
            <widget class="QLabel" name="qttz_">
             <property name="text">
-             <string>其他特征（多选）</string>
+             <string>其他特征</string>
             </property>
            </widget>
           </item>
@@ -455,7 +455,7 @@
           <item>
            <widget class="QLabel" name="qttz__">
             <property name="text">
-             <string>其他特征（多选）</string>
+             <string>其他特征</string>
             </property>
            </widget>
           </item>
@@ -524,7 +524,7 @@
       </size>
      </property>
      <property name="title">
-      <string>阅片诊断</string>
+      <string>阅片诊断（单选）</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -553,7 +553,7 @@
       </size>
      </property>
      <property name="title">
-      <string>诊断把握</string>
+      <string>诊断把握（单选）</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>

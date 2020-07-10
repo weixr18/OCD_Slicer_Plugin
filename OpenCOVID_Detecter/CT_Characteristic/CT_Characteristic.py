@@ -115,22 +115,28 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         self.ui = slicer.util.childWidgetVariables(uiWidget)
         # self.ui.FileSelect.inputw.inputSelector.setMRMLScene(slicer.mrmlScene)
 
+        # components
         self.saveButton = self.ui.Save
         self.fileDirSelector = self.ui.FileSelect.children()[1].PathLineEdit
+        self.spinbox = self.ui.FileSelect.children()[2].idSpinBox
 
         # connections
-        self.saveButton.connect('clicked(bool)', self.onSaveButton)
+        self.saveButton.connect('clicked(bool)', self.saveCurrentPage)
         self.fileDirSelector.connect(
             'currentPathChanged(QString)', self.onDirSelected)
-        """
-        self.inputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-        self.outputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-        """
+        self.spinbox.connect('valueChanged(int)', self.onIndexChange)
 
         # enables
-        self.saveButton.setEnabled(self.fileDirSelector.currentPath == "\n")
+        self.setEnables()
+
+    def setEnables(self):
+        self.ENABLE = not (self.fileDirSelector.currentPath == "")
+        self.saveButton.setEnabled(self.ENABLE)
+        self.spinbox.setEnabled(self.ENABLE)
+        self.ui.zybz.setEnabled(self.ENABLE)
+        self.ui.qtzx.setEnabled(self.ENABLE)
+        self.ui.ypzd.setEnabled(self.ENABLE)
+        self.ui.zdbw.setEnabled(self.ENABLE)
 
     def cleanup(self):
         pass
@@ -139,7 +145,9 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         """文件夹选择后"""
 
         if file_dir is not '\n':
-            self.saveButton.setEnabled(True)
+            self.setEnables()
+
+            # 获取已有数据
             txt_path = file_dir + "/result.txt"
 
             if os.path.exists(txt_path):
@@ -149,29 +157,176 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
                 self.res = json.loads(sample_json.decode("gb2312"))
             else:
                 self.txt = open(txt_path, mode='w')
+                self.txt.write("{}")
                 self.txt.close()
                 self.res = dict()
 
+            # 设置数据选择范围
             file_list = os.listdir(file_dir)
-
             n_file_list = []
             for f in file_list:
-                if f[-3:] is "nii":
+                if f[-3:] == u"nii":
                     n_file_list.append(f)
             file_list = n_file_list
+            self.spinbox.setMaximum(len(file_list) - 1)
 
-            print file_list
+            # 更新界面
+            self.onIndexChange(self.spinbox.value)
+
         pass
 
-    def onSaveButton(self):
+    def onIndexChange(self, sample_id):
+        """加载已有结果"""
+
+        # 载入数据
+        file_dir = self.fileDirSelector.currentPath
+        data_path = file_dir + "/" + str(self.spinbox.value) + ".nii"
+
+        # TODO: release the exist volume node
+        self.currentVolume = slicer.util.loadVolume(data_path)
+
+        # 判断是否已有记录
+        if not hasattr(self, "res"):
+            return None
+        if self.res == dict():
+            return None
+        if str(sample_id) not in self.res:
+            return None
+
+        data = self.res[str(sample_id)]
+
+        # 主要病灶
+        ZYBZ = list(self.ui.zybz.children())
+
+        if True:
+            if u"磨玻璃影" in data[u"主要病灶"][u"病变类型"]:
+                ZYBZ[2].setChecked(True)
+            else:
+                ZYBZ[2].setChecked(False)
+            if u"实变" in data[u"主要病灶"][u"病变类型"]:
+                ZYBZ[3].setChecked(True)
+            else:
+                ZYBZ[3].setChecked(False)
+            if u"低密度影" in data[u"主要病灶"][u"病变类型"]:
+                ZYBZ[4].setChecked(True)
+            else:
+                ZYBZ[4].setChecked(False)
+            if u"线性影" in data[u"主要病灶"][u"病变类型"]:
+                ZYBZ[5].setChecked(True)
+            else:
+                ZYBZ[5].setChecked(False)
+
+            if u"中央" in data[u"主要病灶"][u"病变分布"]:
+                ZYBZ[7].setChecked(True)
+            else:
+                ZYBZ[7].setChecked(False)
+            if u"沿支气管分布" in data[u"主要病灶"][u"病变分布"]:
+                ZYBZ[8].setChecked(True)
+            else:
+                ZYBZ[8].setChecked(False)
+            if u"胸膜附近" in data[u"主要病灶"][u"病变分布"]:
+                ZYBZ[9].setChecked(True)
+            else:
+                ZYBZ[9].setChecked(False)
+
+            if u"<3cm结节" in data[u"主要病灶"][u"病灶大小"]:
+                ZYBZ[11].setChecked(True)
+            else:
+                ZYBZ[11].setChecked(False)
+            if u"3-10cm斑块" in data[u"主要病灶"][u"病灶大小"]:
+                ZYBZ[12].setChecked(True)
+            else:
+                ZYBZ[12].setChecked(False)
+            if u">10cm大块" in data[u"主要病灶"][u"病灶大小"]:
+                ZYBZ[13].setChecked(True)
+            else:
+                ZYBZ[13].setChecked(False)
+            if u"弥散性" in data[u"主要病灶"][u"病灶大小"]:
+                ZYBZ[14].setChecked(True)
+            else:
+                ZYBZ[14].setChecked(False)
+
+            if u"单发" in data[u"主要病灶"][u"病变数目"]:
+                ZYBZ[16].setChecked(True)
+            else:
+                ZYBZ[16].setChecked(False)
+            if u"2-4，多发" in data[u"主要病灶"][u"病变数目"]:
+                ZYBZ[17].setChecked(True)
+            else:
+                ZYBZ[17].setChecked(False)
+            if u"5以上，多发" in data[u"主要病灶"][u"病变数目"]:
+                ZYBZ[18].setChecked(True)
+            else:
+                ZYBZ[18].setChecked(False)
+            if u"弥散性2" in data[u"主要病灶"][u"病变数目"]:
+                ZYBZ[19].setChecked(True)
+            else:
+                ZYBZ[19].setChecked(False)
+
+            if u"左上" in data[u"主要病灶"][u"病变位置"]:
+                ZYBZ[21].setChecked(True)
+            else:
+                ZYBZ[21].setChecked(False)
+            if u"左下" in data[u"主要病灶"][u"病变位置"]:
+                ZYBZ[22].setChecked(True)
+            else:
+                ZYBZ[22].setChecked(False)
+            if u"右上" in data[u"主要病灶"][u"病变位置"]:
+                ZYBZ[23].setChecked(True)
+            else:
+                ZYBZ[23].setChecked(False)
+            if u"右中" in data[u"主要病灶"][u"病变位置"]:
+                ZYBZ[24].setChecked(True)
+            else:
+                ZYBZ[24].setChecked(False)
+            if u"右下" in data[u"主要病灶"][u"病变位置"]:
+                ZYBZ[25].setChecked(True)
+            else:
+                ZYBZ[25].setChecked(False)
+
+        # 其他征象
+
+        # 诊断和把握程度
+        YPZD = list(self.ui.ypzd.children())
+
+        if True:
+            if data[u"阅片诊断"] == 0:
+                YPZD[1].setChecked(True)
+                YPZD[2].setChecked(False)
+            elif data[u"阅片诊断"] == 1:
+                YPZD[1].setChecked(False)
+                YPZD[2].setChecked(True)
+            else:
+                YPZD[1].setChecked(False)
+                YPZD[2].setChecked(False)
+
+            ZDBW = list(self.ui.zdbw.children())
+            if data[u"诊断把握"] == 0:
+                ZDBW[1].setChecked(True)
+                ZDBW[2].setChecked(False)
+                ZDBW[3].setChecked(False)
+            elif data[u"诊断把握"] == 1:
+                ZDBW[1].setChecked(False)
+                ZDBW[2].setChecked(True)
+                ZDBW[3].setChecked(False)
+            elif data[u"诊断把握"] == 2:
+                ZDBW[1].setChecked(False)
+                ZDBW[2].setChecked(False)
+                ZDBW[3].setChecked(True)
+            else:
+                ZDBW[1].setChecked(False)
+                ZDBW[2].setChecked(False)
+                ZDBW[3].setChecked(False)
+
+        pass
+
+    def saveCurrentPage(self):
         """点击保存按钮"""
-
         # id
-        fs = self.ui.FileSelect.children()
-        file_dir = fs[1].PathLineEdit.currentPath
-        sample_id = fs[2].idSpinBox.value
+        file_dir = self.fileDirSelector.currentPath
+        sample_id = self.spinbox.value
 
-        # ZhuYaoBingZao
+        # 主要病灶
         ZYBZ = list(self.ui.zybz.children())
         n_ZYBZ = dict()
         cur_list = []
@@ -183,7 +338,7 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             elif str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
                 cur_list.append(DICT[z.objectName])
 
-        # QiTaZhengXiang
+        # 其他征象
         QTZX = list(self.ui.qtzx.children())
         n_QTZX = dict()
         cur_list = []
@@ -195,7 +350,7 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             elif str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
                 cur_list.append(DICT[z.objectName])
 
-        # ZhenDuanHeBaWo
+        # 诊断和把握程度
         YPZD = list(self.ui.ypzd.children())
         if YPZD[2].checked:
             n_YPZD = 1
@@ -210,13 +365,15 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         else:
             n_ZDBW = 2
 
-        self.res[sample_id] = {
+        # 同步数据
+        self.res[str(sample_id)] = {
             u"主要病灶": n_ZYBZ,
             u"其他征象": n_QTZX,
             u"阅片诊断": n_YPZD,
             u"诊断把握": n_ZDBW,
         }
 
+        # 序列化和存盘
         sample_json = json.dumps(
             self.res,
             sort_keys=True,
@@ -230,6 +387,20 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             self.txt.close()
 
         pass
+
+    def BBSM_SingleCheck(self):
+        checkBox = self.sender()
+
+        ZYBZ = list(self.ui.zybz.children())
+        ZYBZ[16].setChecked(False)
+        ZYBZ[17].setChecked(False)
+        ZYBZ[18].setChecked(False)
+        ZYBZ[19].setChecked(False)
+        checkBox.setChecked(True)
+
+        pass
+
+    pass
 
 #
 # CT_CharacteristicLogic
