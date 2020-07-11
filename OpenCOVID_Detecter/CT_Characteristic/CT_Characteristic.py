@@ -10,7 +10,7 @@ import slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 import json
-
+import codecs
 #
 # CT_Characteristic
 #
@@ -202,132 +202,262 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         if self.res == dict():
             return None
         if str(sample_id) not in self.res:
+            self.pageRefresh()
             return None
 
+        # 页面刷新
         data = self.res[str(sample_id)]
+        self.pageRefresh(data)
 
-        # 主要病灶
-        ZYBZ = list(self.ui.zybz.children())
+        pass
 
-        if True:
-            if u"磨玻璃影" in data[u"主要病灶"][u"病变类型"]:
-                ZYBZ[2].setChecked(True)
-            else:
-                ZYBZ[2].setChecked(False)
-            if u"实变" in data[u"主要病灶"][u"病变类型"]:
-                ZYBZ[3].setChecked(True)
-            else:
-                ZYBZ[3].setChecked(False)
-            if u"低密度影" in data[u"主要病灶"][u"病变类型"]:
-                ZYBZ[4].setChecked(True)
-            else:
-                ZYBZ[4].setChecked(False)
-            if u"线性影" in data[u"主要病灶"][u"病变类型"]:
-                ZYBZ[5].setChecked(True)
-            else:
-                ZYBZ[5].setChecked(False)
+    def pageRefresh(self, data=None):
+        """页面刷新"""
 
-            if u"中央" in data[u"主要病灶"][u"病变分布"]:
-                ZYBZ[7].setChecked(True)
-            else:
-                ZYBZ[7].setChecked(False)
-            if u"沿支气管分布" in data[u"主要病灶"][u"病变分布"]:
-                ZYBZ[8].setChecked(True)
-            else:
-                ZYBZ[8].setChecked(False)
-            if u"胸膜附近" in data[u"主要病灶"][u"病变分布"]:
-                ZYBZ[9].setChecked(True)
-            else:
-                ZYBZ[9].setChecked(False)
+        if data is not None:
+            # 主要病灶
+            ZYBZ = list(self.ui.zybz.children())
 
-            if u"<3cm结节" in data[u"主要病灶"][u"病灶大小"]:
-                ZYBZ[11].setChecked(True)
-            else:
-                ZYBZ[11].setChecked(False)
-            if u"3-10cm斑块" in data[u"主要病灶"][u"病灶大小"]:
-                ZYBZ[12].setChecked(True)
-            else:
-                ZYBZ[12].setChecked(False)
-            if u">10cm大块" in data[u"主要病灶"][u"病灶大小"]:
-                ZYBZ[13].setChecked(True)
-            else:
-                ZYBZ[13].setChecked(False)
-            if u"弥散性" in data[u"主要病灶"][u"病灶大小"]:
-                ZYBZ[14].setChecked(True)
-            else:
-                ZYBZ[14].setChecked(False)
+            if True:
+                if u"磨玻璃影" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[2].setChecked(True)
+                else:
+                    ZYBZ[2].setChecked(False)
+                if u"实变" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[3].setChecked(True)
+                else:
+                    ZYBZ[3].setChecked(False)
+                if u"低密度影" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[4].setChecked(True)
+                else:
+                    ZYBZ[4].setChecked(False)
+                if u"线性影" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[5].setChecked(True)
+                else:
+                    ZYBZ[5].setChecked(False)
 
-            if u"单发" in data[u"主要病灶"][u"病变数目"]:
-                ZYBZ[16].setChecked(True)
-            else:
-                ZYBZ[16].setChecked(False)
-            if u"2-4，多发" in data[u"主要病灶"][u"病变数目"]:
-                ZYBZ[17].setChecked(True)
-            else:
-                ZYBZ[17].setChecked(False)
-            if u"5以上，多发" in data[u"主要病灶"][u"病变数目"]:
-                ZYBZ[18].setChecked(True)
-            else:
-                ZYBZ[18].setChecked(False)
-            if u"弥散性2" in data[u"主要病灶"][u"病变数目"]:
-                ZYBZ[19].setChecked(True)
-            else:
-                ZYBZ[19].setChecked(False)
+                if u"中央" in data[u"主要病灶"][u"病变分布"]:
+                    ZYBZ[7].setChecked(True)
+                else:
+                    ZYBZ[7].setChecked(False)
+                if u"沿支气管分布" in data[u"主要病灶"][u"病变分布"]:
+                    ZYBZ[8].setChecked(True)
+                else:
+                    ZYBZ[8].setChecked(False)
+                if u"胸膜附近" in data[u"主要病灶"][u"病变分布"]:
+                    ZYBZ[9].setChecked(True)
+                else:
+                    ZYBZ[9].setChecked(False)
 
-            if u"左上" in data[u"主要病灶"][u"病变位置"]:
-                ZYBZ[21].setChecked(True)
-            else:
-                ZYBZ[21].setChecked(False)
-            if u"左下" in data[u"主要病灶"][u"病变位置"]:
-                ZYBZ[22].setChecked(True)
-            else:
-                ZYBZ[22].setChecked(False)
-            if u"右上" in data[u"主要病灶"][u"病变位置"]:
-                ZYBZ[23].setChecked(True)
-            else:
-                ZYBZ[23].setChecked(False)
-            if u"右中" in data[u"主要病灶"][u"病变位置"]:
-                ZYBZ[24].setChecked(True)
-            else:
-                ZYBZ[24].setChecked(False)
-            if u"右下" in data[u"主要病灶"][u"病变位置"]:
-                ZYBZ[25].setChecked(True)
-            else:
-                ZYBZ[25].setChecked(False)
+                if u"<3cm结节" in data[u"主要病灶"][u"病灶大小"]:
+                    ZYBZ[11].setChecked(True)
+                else:
+                    ZYBZ[11].setChecked(False)
+                if u"3-10cm斑块" in data[u"主要病灶"][u"病灶大小"]:
+                    ZYBZ[12].setChecked(True)
+                else:
+                    ZYBZ[12].setChecked(False)
+                if u">10cm大块" in data[u"主要病灶"][u"病灶大小"]:
+                    ZYBZ[13].setChecked(True)
+                else:
+                    ZYBZ[13].setChecked(False)
+                if u"弥散性" in data[u"主要病灶"][u"病灶大小"]:
+                    ZYBZ[14].setChecked(True)
+                else:
+                    ZYBZ[14].setChecked(False)
 
-        # 其他征象
+                if u"单发" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[16].setChecked(True)
+                else:
+                    ZYBZ[16].setChecked(False)
+                if u"2-4，多发" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[17].setChecked(True)
+                else:
+                    ZYBZ[17].setChecked(False)
+                if u"5以上，多发" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[18].setChecked(True)
+                else:
+                    ZYBZ[18].setChecked(False)
+                if u"弥散性2" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[19].setChecked(True)
+                else:
+                    ZYBZ[19].setChecked(False)
 
-        # 诊断和把握程度
-        YPZD = list(self.ui.ypzd.children())
+                if u"左上" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[21].setChecked(True)
+                else:
+                    ZYBZ[21].setChecked(False)
+                if u"左下" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[22].setChecked(True)
+                else:
+                    ZYBZ[22].setChecked(False)
+                if u"右上" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[23].setChecked(True)
+                else:
+                    ZYBZ[23].setChecked(False)
+                if u"右中" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[24].setChecked(True)
+                else:
+                    ZYBZ[24].setChecked(False)
+                if u"右下" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[25].setChecked(True)
+                else:
+                    ZYBZ[25].setChecked(False)
 
-        if True:
-            if data[u"阅片诊断"] == 0:
-                YPZD[1].setChecked(True)
-                YPZD[2].setChecked(False)
-            elif data[u"阅片诊断"] == 1:
-                YPZD[1].setChecked(False)
-                YPZD[2].setChecked(True)
-            else:
-                YPZD[1].setChecked(False)
-                YPZD[2].setChecked(False)
+            # 其他征象
+            QTZX = list(self.ui.qtzx.children())
+
+            if True:
+                if u"小叶间隔增厚" in data[u"其他征象"][u"微观变化"]:
+                    QTZX[2].setChecked(True)
+                else:
+                    QTZX[2].setChecked(False)
+                if u"细网状不透明度" in data[u"其他征象"][u"微观变化"]:
+                    QTZX[3].setChecked(True)
+                else:
+                    QTZX[3].setChecked(False)
+
+                if u"主动脉之外的结节" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[5].setChecked(True)
+                else:
+                    QTZX[5].setChecked(False)
+                if u"动脉增粗" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[6].setChecked(True)
+                else:
+                    QTZX[6].setChecked(False)
+                if u"支气管壁增厚" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[7].setChecked(True)
+                else:
+                    QTZX[7].setChecked(False)
+                if u"空气支气管症" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[8].setChecked(True)
+                else:
+                    QTZX[8].setChecked(False)
+
+                if u"铺路石征" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[10].setChecked(True)
+                else:
+                    QTZX[10].setChecked(False)
+                if u"晕征" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[11].setChecked(True)
+                else:
+                    QTZX[11].setChecked(False)
+                if u"反晕征" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[12].setChecked(True)
+                else:
+                    QTZX[12].setChecked(False)
+                if u"胸膜增厚" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[13].setChecked(True)
+                else:
+                    QTZX[13].setChecked(False)
+                if u"胸腔积液" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[14].setChecked(True)
+                else:
+                    QTZX[14].setChecked(False)
+
+                if u"纵膈增厚" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[15].setChecked(True)
+                else:
+                    QTZX[15].setChecked(False)
+                if u"血坠效应" in data[u"其他征象"][u"其他特征"]:
+                    QTZX[16].setChecked(True)
+                else:
+                    QTZX[16].setChecked(False)
+
+            # 诊断和把握程度
+            YPZD = list(self.ui.ypzd.children())
+
+            if True:
+                if data[u"阅片诊断"] == 0:
+                    YPZD[1].setChecked(True)
+                    YPZD[2].setChecked(False)
+                elif data[u"阅片诊断"] == 1:
+                    YPZD[1].setChecked(False)
+                    YPZD[2].setChecked(True)
+                else:
+                    YPZD[1].setChecked(False)
+                    YPZD[2].setChecked(False)
+
+                ZDBW = list(self.ui.zdbw.children())
+                if data[u"诊断把握"] == 0:
+                    ZDBW[1].setChecked(True)
+                    ZDBW[2].setChecked(False)
+                    ZDBW[3].setChecked(False)
+                elif data[u"诊断把握"] == 1:
+                    ZDBW[1].setChecked(False)
+                    ZDBW[2].setChecked(True)
+                    ZDBW[3].setChecked(False)
+                elif data[u"诊断把握"] == 2:
+                    ZDBW[1].setChecked(False)
+                    ZDBW[2].setChecked(False)
+                    ZDBW[3].setChecked(True)
+                else:
+                    ZDBW[1].setChecked(False)
+                    ZDBW[2].setChecked(False)
+                    ZDBW[3].setChecked(False)
+
+        else:
+
+            ################################################
+            ZYBZ = list(self.ui.zybz.children())
+
+            ZYBZ[2].setChecked(False)
+            ZYBZ[3].setChecked(False)
+            ZYBZ[4].setChecked(False)
+            ZYBZ[5].setChecked(False)
+
+            ZYBZ[7].setChecked(False)
+            ZYBZ[8].setChecked(False)
+            ZYBZ[9].setChecked(False)
+
+            ZYBZ[11].setChecked(False)
+            ZYBZ[12].setChecked(False)
+            ZYBZ[13].setChecked(False)
+            ZYBZ[14].setChecked(False)
+
+            ZYBZ[16].setChecked(False)
+            ZYBZ[17].setChecked(False)
+            ZYBZ[18].setChecked(False)
+            ZYBZ[19].setChecked(False)
+
+            ZYBZ[21].setChecked(False)
+            ZYBZ[22].setChecked(False)
+            ZYBZ[23].setChecked(False)
+            ZYBZ[24].setChecked(False)
+            ZYBZ[25].setChecked(False)
+
+            ################################################
+
+            QTZX = list(self.ui.qtzx.children())
+
+            QTZX[2].setChecked(False)
+            QTZX[3].setChecked(False)
+
+            QTZX[5].setChecked(False)
+            QTZX[6].setChecked(False)
+            QTZX[7].setChecked(False)
+            QTZX[8].setChecked(False)
+
+            QTZX[10].setChecked(False)
+            QTZX[11].setChecked(False)
+            QTZX[12].setChecked(False)
+            QTZX[13].setChecked(False)
+            QTZX[14].setChecked(False)
+            QTZX[15].setChecked(False)
+            QTZX[16].setChecked(False)
+
+            ################################################
+
+            YPZD = list(self.ui.ypzd.children())
+            YPZD[1].setChecked(False)
+            YPZD[2].setChecked(False)
+
+            ################################################
 
             ZDBW = list(self.ui.zdbw.children())
-            if data[u"诊断把握"] == 0:
-                ZDBW[1].setChecked(True)
-                ZDBW[2].setChecked(False)
-                ZDBW[3].setChecked(False)
-            elif data[u"诊断把握"] == 1:
-                ZDBW[1].setChecked(False)
-                ZDBW[2].setChecked(True)
-                ZDBW[3].setChecked(False)
-            elif data[u"诊断把握"] == 2:
-                ZDBW[1].setChecked(False)
-                ZDBW[2].setChecked(False)
-                ZDBW[3].setChecked(True)
-            else:
-                ZDBW[1].setChecked(False)
-                ZDBW[2].setChecked(False)
-                ZDBW[3].setChecked(False)
+            ZDBW[1].setChecked(False)
+            ZDBW[2].setChecked(False)
+            ZDBW[3].setChecked(False)
 
         pass
 
@@ -391,9 +521,14 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             ensure_ascii=False
         )
 
+        import sys
+        reload sys
+        sys.setdefaultencoding('utf-8')
+
         if hasattr(self, "txt"):
             txt_path = self.fileDirSelector.currentPath + '/result.txt'
             self.txt = open(txt_path, 'w')
+            # self.txt.write(codecs.BOM_UTF8)
             self.txt.write(sample_json)
             self.txt.close()
 
