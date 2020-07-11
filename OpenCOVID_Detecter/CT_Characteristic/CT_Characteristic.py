@@ -171,6 +171,7 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             self.spinbox.setMaximum(len(file_list) - 1)
 
             # 更新界面
+            self.lastIndex = self.spinbox.value
             self.onIndexChange(self.spinbox.value)
 
         pass
@@ -180,10 +181,20 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
 
         # 载入数据
         file_dir = self.fileDirSelector.currentPath
-        data_path = file_dir + "/" + str(self.spinbox.value) + ".nii"
+        data_path = file_dir + "/" + str(sample_id) + ".nii"
+        flag = slicer.util.loadVolume(data_path)
+        self.currentVolume = slicer.util.getNode(str(sample_id) + "*")
 
-        # TODO: release the exist volume node
-        self.currentVolume = slicer.util.loadVolume(data_path)
+        if self.lastIndex != sample_id:
+            # 若非初次打开
+            lastNode = slicer.util.getNode(self.lastVolumeName)
+            slicer.mrmlScene.RemoveNode(lastNode)
+            self.lastIndex = sample_id
+            self.lastVolumeName = self.currentVolume.GetName()
+
+        else:
+            # 若为初次打开
+            self.lastVolumeName = self.currentVolume.GetName()
 
         # 判断是否已有记录
         if not hasattr(self, "res"):

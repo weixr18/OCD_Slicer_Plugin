@@ -40,93 +40,29 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget):
     """
 
     def setup(self):
+        # Father content setup
         ScriptedLoadableModuleWidget.setup(self)
 
-        # Instantiate and connect widgets ...
+        # Logic Component Setup
+        self.logic = CT_AnnotateLogic()
 
-        #
-        # Parameters Area
-        #
-        parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-        parametersCollapsibleButton.text = "Parameters"
-        self.layout.addWidget(parametersCollapsibleButton)
+        # Load widget from .ui file (created by Qt Designer)
+        uiWidget = slicer.util.loadUI(
+            self.resourcePath('UI/CT_Annotate.ui'))
+        self.layout.addWidget(uiWidget)
+        self.ui = slicer.util.childWidgetVariables(uiWidget)
 
-        # Layout within the dummy collapsible button
-        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
-        #
-        # input volume selector
-        #
-        self.inputSelector = slicer.qMRMLNodeComboBox()
-        self.inputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelector.selectNodeUponCreation = True
-        self.inputSelector.addEnabled = False
-        self.inputSelector.removeEnabled = False
-        self.inputSelector.noneEnabled = False
-        self.inputSelector.showHidden = False
-        self.inputSelector.showChildNodeTypes = False
-        self.inputSelector.setMRMLScene(slicer.mrmlScene)
-        self.inputSelector.setToolTip("Pick the input to the algorithm.")
-        parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
-
-        #
-        # output volume selector
-        #
-        self.outputSelector = slicer.qMRMLNodeComboBox()
-        self.outputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.outputSelector.selectNodeUponCreation = True
-        self.outputSelector.addEnabled = True
-        self.outputSelector.removeEnabled = True
-        self.outputSelector.noneEnabled = True
-        self.outputSelector.showHidden = False
-        self.outputSelector.showChildNodeTypes = False
-        self.outputSelector.setMRMLScene(slicer.mrmlScene)
-        self.outputSelector.setToolTip("Pick the output to the algorithm.")
-        parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
-        #
-        # threshold value
-        #
-        self.imageThresholdSliderWidget = ctk.ctkSliderWidget()
-        self.imageThresholdSliderWidget.singleStep = 0.1
-        self.imageThresholdSliderWidget.minimum = -100
-        self.imageThresholdSliderWidget.maximum = 100
-        self.imageThresholdSliderWidget.value = 0.5
-        self.imageThresholdSliderWidget.setToolTip(
-            "Set threshold value for computing the output image. Voxels that have intensities lower than this value will set to zero.")
-        parametersFormLayout.addRow(
-            "Image threshold", self.imageThresholdSliderWidget)
-
-        #
-        # check box to trigger taking screen shots for later use in tutorials
-        #
-        self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-        self.enableScreenshotsFlagCheckBox.checked = 0
-        self.enableScreenshotsFlagCheckBox.setToolTip(
-            "If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-        parametersFormLayout.addRow(
-            "Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-        #
-        # Apply Button
-        #
-        self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Run the algorithm."
-        self.applyButton.enabled = False
-        parametersFormLayout.addRow(self.applyButton)
+        # components
+        self.editor = self.ui.SegmentEditorWidget
+        print dir(self.editor)
 
         # connections
-        self.applyButton.connect('clicked(bool)', self.onApplyButton)
-        self.inputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-        self.outputSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-
-        # Add vertical spacer
-        self.layout.addStretch(1)
-
-        # Refresh Apply button state
-        self.onSelect()
+        """
+        self.saveButton.connect('clicked(bool)', self.saveCurrentPage)
+        self.fileDirSelector.connect(
+            'currentPathChanged(QString)', self.onDirSelected)
+        self.spinbox.connect('valueChanged(int)', self.onIndexChange)
+        """
 
     def cleanup(self):
         pass
@@ -148,11 +84,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget):
 
 
 class CT_AnnotateLogic(ScriptedLoadableModuleLogic):
-    """This class should implement all the actual
-    computation done by your module.  The interface
-    should be such that other python code can import
-    this class and make use of the functionality without
-    requiring an instance of the Widget.
+    """
     Uses ScriptedLoadableModuleLogic base class, available at:
     https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
     """
@@ -233,16 +165,6 @@ class CT_AnnotateTest(ScriptedLoadableModuleTest):
         self.test_CT_Annotate1()
 
     def test_CT_Annotate1(self):
-        """ Ideally you should have several levels of tests.  At the lowest level
-        tests should exercise the functionality of the logic with different inputs
-        (both valid and invalid).  At higher levels your tests should emulate the
-        way the user would interact with your code and confirm that it still works
-        the way you intended.
-        One of the most important features of the tests is that it should alert other
-        developers when their changes will have an impact on the behavior of your
-        module.  For example, if a developer removes a feature that you depend on,
-        your test should break so they know that the feature is needed.
-        """
 
         self.delayDisplay("Starting the test")
         #
