@@ -3,17 +3,15 @@ A plugin of Slicer to help diagnose COVID-19
 
 ## Project description
 
-This is a Slicer open source plugin for the detection of COVID-19-induced pneumonia. 
+This project is a collection of open-source COVID-19 diagnostic and research-related tools.
 
-The principle is based on a deep learning technique for scanning CT identification of the patient's lungs. 
+So far, the project includes a tool to assist physicians in making COVID-19 diagnoses from CT images, a CT image sign statistics tool, and a CT image segmentation annotation tool (under development).
 
-So far, we have implemented a prototype version of the plugin. In this version, we can handle the corpora data that Slicer reads in. We section it, perform lung segmentation, and use the segmentation results and sections to diagnose the presence or absence of COVID-19 lesions on this CT image.
-
-Our algorithms are still being tested and optimized. After the algorithm has matured steadily, we will make it part of the Slicer open source plugin library.
+We hope that this project will help doctors and researchers around the world to make a contribution to the fight against the novel coronavirus pneumonia.
 
 ## Contributors
 
-Xinran Wei, WeiXiang Chen, PeiYi Han, Kaiwen Men, Bolun Liu.
+Xinran Wei, WeiXiang Chen, PeiYi Han, Kaiwen Men, Bolun Liu (Tsinghua University).
 
 ## Required Packages
 
