@@ -522,7 +522,7 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         )
 
         import sys
-        reload sys
+        # reload sys
         sys.setdefaultencoding('utf-8')
 
         if hasattr(self, "txt"):

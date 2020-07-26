@@ -18,6 +18,10 @@ import pickle
 
 from Front.data_front import arrayInterpolation
 
+
+USE_CUDA = False
+
+
 #
 # CT_Detect
 #
@@ -36,12 +40,10 @@ class CT_Detect(ScriptedLoadableModule):
         # replace with organization, grant and thanks.
         self.parent.acknowledgementText = ""
 
-#
-# CT_DetectWidget
-#
 
-
-USE_CUDA = False
+#
+# Client
+#
 
 
 class Client():
@@ -109,6 +111,10 @@ class Client():
 
     pass
 
+
+#
+# CT_DetectWidget
+#
 
 class CT_DetectWidget(ScriptedLoadableModuleWidget):
 
