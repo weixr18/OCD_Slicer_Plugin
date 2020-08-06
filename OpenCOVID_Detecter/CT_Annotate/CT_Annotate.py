@@ -7,7 +7,7 @@ import slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 
-from slicer.util import VTKObservationMixin
+from slicer.util import VTKObservationMixin, arrayFromVolume
 
 #
 # CT_Annotate
@@ -50,12 +50,13 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.editor = None
 
     def setup(self):
+        """ui setup"""
         ScriptedLoadableModuleWidget.setup(self)
 
         #
-        # Input selectors
+        # Draw the masterVolume panel layout
         #
-        self.setInputSelectors()
+        self.setPanelLayOut()
 
         #
         # Segment editor widget
@@ -86,7 +87,9 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.addObserver(
             slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
-        # Set layout to 3*3
+        #
+        # Set display layout
+        #
         layout = slicer.qMRMLLayoutWidget()
         layout.setMRMLScene(slicer.mrmlScene)
         layout.setLayout(
@@ -94,164 +97,195 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.refreshLayOut()
 
+        #
         # Connections
-
+        #
         self.inputSelectorV1.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
-        self.inputSelectorS1.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
         self.inputSelectorV2.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
-        self.inputSelectorS2.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
         self.inputSelectorV3.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
-        self.inputSelectorS3.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
+        self.masterVolumeSelector.connect(
+            "currentNodeChanged(vtkMRMLNode*)", self.masterVolumeChange)
 
-        """
-        #
-        # check box to trigger taking screen shots for later use in tutorials
-        #
-        #
-        # Show Input Data Button
-        #
-        self.inputButton = qt.QPushButton("Show Input Data")
-        self.inputButton.toolTip = "Show Input Data."
-        self.inputButton.enabled = False
-        parametersFormLayout.addRow(self.inputButton)
+        self.slider1.connect("valueChanged(double)", self.sideBarMoveAxial)
+        self.slider2.connect("valueChanged(double)", self.sideBarMoveSagittal)
+        self.slider3.connect("valueChanged(double)", self.sideBarMoveCoronal)
 
         #
-        # Apply Button
+        # refresh
         #
-        self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Run the algorithm."
-        self.applyButton.enabled = False
-        parametersFormLayout.addRow(self.applyButton)
+        self.editor.setAutoShowMasterVolumeNode(False)
+        self.editor.setMasterVolumeNodeSelectorVisible(False)
+        self.editor.setSegmentationNodeSelectorVisible(False)
 
-        # connections
-
-        self.inputButton.connect('clicked(bool)', self.onInputButton)
-        self.applyButton.connect('clicked(bool)', self.onApplyButton)
-
-
-        self.OffsetSliderWidget.connect(
-            "valueChanged(double)", self.changeDisplay)
-        """
+        # TODO: reset the volume nodes
+        self.masterVolumeChange(
+            self.masterVolumeSelector.currentNode()
+        )
 
         # debug part
-        # print dir(slicer.app.layoutManager())
 
-    def setInputSelectors(self):
-
+    def setPanelLayOut(self):
+        """panel layout setup"""
         parametersCollapsibleButton = ctk.ctkCollapsibleButton()
         parametersCollapsibleButton.text = "Parameters"
         self.layout.addWidget(parametersCollapsibleButton)
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
-        self.inputSelectorV1Lay = qt.QHBoxLayout()
-        self.inputSelectorV1 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorV1.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorV1.selectNodeUponCreation = True
-        self.inputSelectorV1.addEnabled = False
-        self.inputSelectorV1.removeEnabled = False
-        self.inputSelectorV1.noneEnabled = False
-        self.inputSelectorV1.showHidden = False
-        self.inputSelectorV1.showChildNodeTypes = False
-        self.inputSelectorV1.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorV1.setToolTip("First period.")
-        self.inputLableV1 = qt.QLabel()
-        self.inputLableV1.setText("Input Volume 1:")
-        self.inputSelectorV1Lay.addWidget(self.inputLableV1)
-        self.inputSelectorV1Lay.addWidget(self.inputSelectorV1)
+        # Input select & segment select
+        if True:
+            self.inputSelectorV1Lay = qt.QHBoxLayout()
+            self.inputSelectorV1 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorV1.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+            self.inputSelectorV1.selectNodeUponCreation = True
+            self.inputSelectorV1.addEnabled = False
+            self.inputSelectorV1.removeEnabled = False
+            self.inputSelectorV1.noneEnabled = False
+            self.inputSelectorV1.showHidden = False
+            self.inputSelectorV1.showChildNodeTypes = False
+            self.inputSelectorV1.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorV1.setToolTip("First period.")
+            self.inputLableV1 = qt.QLabel()
+            self.inputLableV1.setText("Input Volume 1:")
+            self.inputSelectorV1Lay.addWidget(self.inputLableV1)
+            self.inputSelectorV1Lay.addWidget(self.inputSelectorV1)
 
-        self.inputSelectorS1 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorS1.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorS1.selectNodeUponCreation = True
-        self.inputSelectorS1.addEnabled = False
-        self.inputSelectorS1.removeEnabled = False
-        self.inputSelectorS1.noneEnabled = False
-        self.inputSelectorS1.showHidden = False
-        self.inputSelectorS1.showChildNodeTypes = False
-        self.inputSelectorS1.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorS1.setToolTip("Pick the input to the algorithm.")
-        self.inputLableS1 = qt.QLabel()
-        self.inputLableS1.setText("Input Segment 1:")
-        # self.inputSelectorV1Lay.addWidget(self.inputLableS1)
-        # self.inputSelectorV1Lay.addWidget(self.inputSelectorS1)
-        parametersFormLayout.addRow(self.inputSelectorV1Lay)
+            self.inputSelectorS1 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorS1.nodeTypes = ["vtkMRMLSegmentationNode"]
+            self.inputSelectorS1.selectNodeUponCreation = True
+            self.inputSelectorS1.addEnabled = True
+            self.inputSelectorS1.removeEnabled = True
+            self.inputSelectorS1.noneEnabled = False
+            self.inputSelectorS1.showHidden = False
+            self.inputSelectorS1.showChildNodeTypes = False
+            self.inputSelectorS1.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorS1.setToolTip("Segmentation for period 1.")
+            self.inputLableS1 = qt.QLabel()
+            self.inputLableS1.setText("Input Segment 1:")
+            self.inputSelectorV1Lay.addWidget(self.inputLableS1)
+            self.inputSelectorV1Lay.addWidget(self.inputSelectorS1)
+            parametersFormLayout.addRow(self.inputSelectorV1Lay)
 
-        self.inputSelectorV2Lay = qt.QHBoxLayout()
-        self.inputSelectorV2 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorV2.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorV2.selectNodeUponCreation = True
-        self.inputSelectorV2.addEnabled = False
-        self.inputSelectorV2.removeEnabled = False
-        self.inputSelectorV2.noneEnabled = False
-        self.inputSelectorV2.showHidden = False
-        self.inputSelectorV2.showChildNodeTypes = False
-        self.inputSelectorV2.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorV2.setToolTip("Second period.")
-        self.inputLableV2 = qt.QLabel()
-        self.inputLableV2.setText("Input Volume 2:")
-        self.inputSelectorV2Lay.addWidget(self.inputLableV2)
-        self.inputSelectorV2Lay.addWidget(self.inputSelectorV2)
+            self.inputSelectorV2Lay = qt.QHBoxLayout()
+            self.inputSelectorV2 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorV2.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+            self.inputSelectorV2.selectNodeUponCreation = True
+            self.inputSelectorV2.addEnabled = False
+            self.inputSelectorV2.removeEnabled = False
+            self.inputSelectorV2.noneEnabled = False
+            self.inputSelectorV2.showHidden = False
+            self.inputSelectorV2.showChildNodeTypes = False
+            self.inputSelectorV2.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorV2.setToolTip("Second period.")
+            self.inputLableV2 = qt.QLabel()
+            self.inputLableV2.setText("Input Volume 2:")
+            self.inputSelectorV2Lay.addWidget(self.inputLableV2)
+            self.inputSelectorV2Lay.addWidget(self.inputSelectorV2)
 
-        self.inputSelectorS2 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorS2.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorS2.selectNodeUponCreation = True
-        self.inputSelectorS2.addEnabled = False
-        self.inputSelectorS2.removeEnabled = False
-        self.inputSelectorS2.noneEnabled = False
-        self.inputSelectorS2.showHidden = False
-        self.inputSelectorS2.showChildNodeTypes = False
-        self.inputSelectorS2.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorS2.setToolTip("Pick the input to the algorithm.")
-        self.inputLableS2 = qt.QLabel()
-        self.inputLableS2.setText("Input Segment 2:")
-        # self.inputSelectorV2Lay.addWidget(self.inputLableS2)
-        # self.inputSelectorV2Lay.addWidget(self.inputSelectorS2)
-        parametersFormLayout.addRow(self.inputSelectorV2Lay)
+            self.inputSelectorS2 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorS2.nodeTypes = ["vtkMRMLSegmentationNode"]
+            self.inputSelectorS2.selectNodeUponCreation = True
+            self.inputSelectorS2.addEnabled = True
+            self.inputSelectorS2.removeEnabled = True
+            self.inputSelectorS2.noneEnabled = False
+            self.inputSelectorS2.showHidden = False
+            self.inputSelectorS2.showChildNodeTypes = False
+            self.inputSelectorS2.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorS2.setToolTip("Pick the input to the algorithm.")
+            self.inputLableS2 = qt.QLabel()
+            self.inputLableS2.setText("Input Segment 2:")
+            self.inputSelectorV2Lay.addWidget(self.inputLableS2)
+            self.inputSelectorV2Lay.addWidget(self.inputSelectorS2)
+            parametersFormLayout.addRow(self.inputSelectorV2Lay)
 
-        self.inputSelectorV3Lay = qt.QHBoxLayout()
-        self.inputSelectorV3 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorV3.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorV3.selectNodeUponCreation = True
-        self.inputSelectorV3.addEnabled = False
-        self.inputSelectorV3.removeEnabled = False
-        self.inputSelectorV3.noneEnabled = False
-        self.inputSelectorV3.showHidden = False
-        self.inputSelectorV3.showChildNodeTypes = False
-        self.inputSelectorV3.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorV3.setToolTip("Third period.")
-        self.inputLableV3 = qt.QLabel()
-        self.inputLableV3.setText("Input Volume 3:")
-        self.inputSelectorV3Lay.addWidget(self.inputLableV3)
-        self.inputSelectorV3Lay.addWidget(self.inputSelectorV3)
+            self.inputSelectorV3Lay = qt.QHBoxLayout()
+            self.inputSelectorV3 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorV3.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+            self.inputSelectorV3.selectNodeUponCreation = True
+            self.inputSelectorV3.addEnabled = False
+            self.inputSelectorV3.removeEnabled = False
+            self.inputSelectorV3.noneEnabled = False
+            self.inputSelectorV3.showHidden = False
+            self.inputSelectorV3.showChildNodeTypes = False
+            self.inputSelectorV3.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorV3.setToolTip("Third period.")
+            self.inputLableV3 = qt.QLabel()
+            self.inputLableV3.setText("Input Volume 3:")
+            self.inputSelectorV3Lay.addWidget(self.inputLableV3)
+            self.inputSelectorV3Lay.addWidget(self.inputSelectorV3)
 
-        self.inputSelectorS3 = slicer.qMRMLNodeComboBox()
-        self.inputSelectorS3.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-        self.inputSelectorS3.selectNodeUponCreation = True
-        self.inputSelectorS3.addEnabled = False
-        self.inputSelectorS3.removeEnabled = False
-        self.inputSelectorS3.noneEnabled = False
-        self.inputSelectorS3.showHidden = False
-        self.inputSelectorS3.showChildNodeTypes = False
-        self.inputSelectorS3.setMRMLScene(slicer.mrmlScene)
-        self.inputSelectorS3.setToolTip("Pick the input to the algorithm.")
-        self.inputLableS3 = qt.QLabel()
-        self.inputLableS3.setText("Input Segment 3:")
-        # self.inputSelectorV3Lay.addWidget(self.inputLableS3)
-        # self.inputSelectorV3Lay.addWidget(self.inputSelectorS3)
-        parametersFormLayout.addRow(self.inputSelectorV3Lay)
+            self.inputSelectorS3 = slicer.qMRMLNodeComboBox()
+            self.inputSelectorS3.nodeTypes = ["vtkMRMLSegmentationNode"]
+            self.inputSelectorS3.selectNodeUponCreation = True
+            self.inputSelectorS3.addEnabled = True
+            self.inputSelectorS3.removeEnabled = True
+            self.inputSelectorS3.noneEnabled = False
+            self.inputSelectorS3.showHidden = False
+            self.inputSelectorS3.showChildNodeTypes = False
+            self.inputSelectorS3.setMRMLScene(slicer.mrmlScene)
+            self.inputSelectorS3.setToolTip("Pick the input to the algorithm.")
+            self.inputLableS3 = qt.QLabel()
+            self.inputLableS3.setText("Input Segment 3:")
+            self.inputSelectorV3Lay.addWidget(self.inputLableS3)
+            self.inputSelectorV3Lay.addWidget(self.inputSelectorS3)
+            parametersFormLayout.addRow(self.inputSelectorV3Lay)
+
+        # Sliders
+
+        self.slider1 = slicer.qMRMLSliderWidget()
+        self.LableAxial = qt.QLabel()
+        self.LableAxial.setText("Axial:")
+        self.sliderLay1 = qt.QHBoxLayout()
+        self.sliderLay1.addWidget(self.LableAxial)
+        self.sliderLay1.addWidget(self.slider1)
+        parametersFormLayout.addRow(self.sliderLay1)
+
+        self.slider2 = slicer.qMRMLSliderWidget()
+        self.LableSagittal = qt.QLabel()
+        self.LableSagittal.setText("Sagittal:")
+        self.sliderLay2 = qt.QHBoxLayout()
+        self.sliderLay2.addWidget(self.LableSagittal)
+        self.sliderLay2.addWidget(self.slider2)
+        parametersFormLayout.addRow(self.sliderLay2)
+
+        self.slider3 = slicer.qMRMLSliderWidget()
+        self.LableCoronal = qt.QLabel()
+        self.LableCoronal.setText("Coronal:")
+        self.sliderLay3 = qt.QHBoxLayout()
+        self.sliderLay3.addWidget(self.LableCoronal)
+        self.sliderLay3.addWidget(self.slider3)
+        parametersFormLayout.addRow(self.sliderLay3)
+
+        # Operation Select
+        self.operationLay = qt.QHBoxLayout()
+        self.masterVolumeSelector = slicer.qMRMLNodeComboBox()
+        self.masterVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+        self.masterVolumeSelector.selectNodeUponCreation = True
+        self.masterVolumeSelector.addEnabled = False
+        self.masterVolumeSelector.removeEnabled = False
+        self.masterVolumeSelector.noneEnabled = False
+        self.masterVolumeSelector.showHidden = False
+        self.masterVolumeSelector.showChildNodeTypes = False
+        self.masterVolumeSelector.setMRMLScene(slicer.mrmlScene)
+        self.masterVolumeSelector.setToolTip("Select Master Volume Node")
+        self.masterVolumeLabel = qt.QLabel()
+        self.masterVolumeLabel.setText("Master Volume:")
+        self.operationLay.addWidget(self.masterVolumeLabel)
+        self.operationLay.addWidget(self.masterVolumeSelector)
+        parametersFormLayout.addRow(self.operationLay)
+
+        pass
 
     def refreshLayOut(self):
+
         inputV1 = self.inputSelectorV1.currentNode()
         inputV2 = self.inputSelectorV2.currentNode()
         inputV3 = self.inputSelectorV3.currentNode()
-        lm = slicer.app.layoutManager()
 
         # bind logic to volumes
+        lm = slicer.app.layoutManager()
         redLogic = lm.sliceWidget('Red').sliceLogic()
         yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
         greenLogic = lm.sliceWidget('Green').sliceLogic()
@@ -264,42 +298,122 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slice8Logic = lm.sliceWidget('Slice8').sliceLogic()
         slice9Logic = lm.sliceWidget('Slice9').sliceLogic()
 
-        redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV1.GetID()
-        )
-        yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV1.GetID()
-        )
-        greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV1.GetID()
-        )
+        if (inputV1.GetID()):
+            redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV1.GetID()
+            )
+            yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV1.GetID()
+            )
+            greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV1.GetID()
+            )
 
-        slice4Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV2.GetID()
-        )
-        slice4Logic.GetSliceNode().SetOrientationToAxial()
-        slice5Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV2.GetID()
-        )
-        slice5Logic.GetSliceNode().SetOrientationToCoronal()
-        slice6Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV2.GetID()
-        )
+        if (inputV2.GetID()):
+            slice4Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV2.GetID()
+            )
+            slice4Logic.GetSliceNode().SetOrientationToAxial()
+            slice5Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV2.GetID()
+            )
+            slice5Logic.GetSliceNode().SetOrientationToCoronal()
+            slice6Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV2.GetID()
+            )
         slice6Logic.GetSliceNode().SetOrientationToSagittal()
 
-        slice7Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV3.GetID()
-        )
-        slice7Logic.GetSliceNode().SetOrientationToAxial()
-        slice8Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV3.GetID()
-        )
-        slice8Logic.GetSliceNode().SetOrientationToCoronal()
-        slice9Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-            inputV3.GetID()
-        )
+        if (inputV3.GetID()):
+            slice7Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV3.GetID()
+            )
+            slice7Logic.GetSliceNode().SetOrientationToAxial()
+            slice8Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV3.GetID()
+            )
+            slice8Logic.GetSliceNode().SetOrientationToCoronal()
+            slice9Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
+                inputV3.GetID()
+            )
         slice9Logic.GetSliceNode().SetOrientationToSagittal()
         slicer.util.resetSliceViews()
+
+        self.slider1.minimum = 0
+        self.slider2.minimum = 0
+        self.slider3.minimum = 0
+
+        if inputV1.GetID() and inputV2.GetID() and inputV3.GetID():
+            self.slider1.maximum = min(
+                arrayFromVolume(inputV1).shape[0],
+                arrayFromVolume(inputV2).shape[0],
+                arrayFromVolume(inputV3).shape[0]
+            )
+
+            self.slider2.maximum = min(
+                arrayFromVolume(inputV1).shape[1],
+                arrayFromVolume(inputV2).shape[1],
+                arrayFromVolume(inputV3).shape[1]
+            )
+
+            self.slider3.maximum = min(
+                arrayFromVolume(inputV1).shape[2],
+                arrayFromVolume(inputV2).shape[2],
+                arrayFromVolume(inputV3).shape[2]
+            )
+        else:
+            self.slider1.maximum = 99
+
+        pass
+
+    def masterVolumeChange(self, currentNode):
+
+        nodeID = currentNode.GetID()
+        if self.inputSelectorV1.currentNodeID == nodeID:
+            self.editor.setSegmentationNode(
+                self.inputSelectorS1.currentNode()
+            )
+        elif self.inputSelectorV2.currentNodeID == nodeID:
+            self.editor.setSegmentationNode(
+                self.inputSelectorS2.currentNode()
+            )
+        elif self.inputSelectorV3.currentNodeID == nodeID:
+            self.editor.setSegmentationNode(
+                self.inputSelectorS3.currentNode()
+            )
+        pass
+
+    def sideBarMoveAxial(self, index):
+        lm = slicer.app.layoutManager()
+        redLogic = lm.sliceWidget('Red').sliceLogic()
+        slice4Logic = lm.sliceWidget('Slice4').sliceLogic()
+        slice7Logic = lm.sliceWidget('Slice7').sliceLogic()
+
+        redLogic.SetSliceOffset(index)
+        slice4Logic.SetSliceOffset(index)
+        slice7Logic.SetSliceOffset(index)
+        pass
+
+    def sideBarMoveSagittal(self, index):
+        lm = slicer.app.layoutManager()
+        greenLogic = lm.sliceWidget('Green').sliceLogic()
+        slice5Logic = lm.sliceWidget('Slice5').sliceLogic()
+        slice8Logic = lm.sliceWidget('Slice8').sliceLogic()
+
+        greenLogic.SetSliceOffset(0-index)
+        slice5Logic.SetSliceOffset(0-index)
+        slice8Logic.SetSliceOffset(0-index)
+        pass
+
+    def sideBarMoveCoronal(self, index):
+        lm = slicer.app.layoutManager()
+        yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
+        slice6Logic = lm.sliceWidget('Slice6').sliceLogic()
+        slice9Logic = lm.sliceWidget('Slice9').sliceLogic()
+
+        yellowLogic.SetSliceOffset(0-index)
+        slice6Logic.SetSliceOffset(0-index)
+        slice9Logic.SetSliceOffset(0-index)
+        pass
 
     def editorEffectRegistered(self):
         self.editor.updateEffectList()
