@@ -58,12 +58,12 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         ScriptedLoadableModuleWidget.setup(self)
 
         #
-        # Draw the masterVolume panel layout
+        # Draw the settings layout
         #
-        self.setPanelLayOut()
+        self.setSettingsLayOut()
 
         #
-        # Draw Segment editor widget
+        # Draw segment editor widget
         #
         import qSlicerSegmentationsModuleWidgetsPythonQt
         self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
@@ -107,9 +107,14 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.masterVolumeSelector.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.masterVolumeChange)
 
-        self.slider1.connect("valueChanged(double)", self.sideBarMoveAxial)
-        self.slider2.connect("valueChanged(double)", self.sideBarMoveSagittal)
-        self.slider3.connect("valueChanged(double)", self.sideBarMoveCoronal)
+        self.sliderAxial.connect("valueChanged(double)", self.sideBarMoveAxial)
+        self.sliderCoronal.connect(
+            "valueChanged(double)", self.sideBarMoveCoronal)
+        self.sliderSagittal.connect(
+            "valueChanged(double)", self.sideBarMoveSagittal)
+
+        self.viewSelector.connect(
+            "currentTextChanged(QString)", self.viewChange)
 
         #
         # Other Initials
@@ -131,7 +136,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # print(self.editor.mouseTracking)
         # print(dir(slicer.app.layoutManager().sliceWidget('Red')))
 
-    def setPanelLayOut(self):
+    def setSettingsLayOut(self):
         """panel layout setup"""
         parametersCollapsibleButton = ctk.ctkCollapsibleButton()
         parametersCollapsibleButton.text = "Settings"
@@ -238,29 +243,29 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         # Sliders
 
-        self.slider1 = slicer.qMRMLSliderWidget()
+        self.sliderAxial = slicer.qMRMLSliderWidget()
         self.LableAxial = qt.QLabel()
         self.LableAxial.setText("Axial:")
         self.sliderLay1 = qt.QHBoxLayout()
         self.sliderLay1.addWidget(self.LableAxial)
-        self.sliderLay1.addWidget(self.slider1)
+        self.sliderLay1.addWidget(self.sliderAxial)
         parametersFormLayout.addRow(self.sliderLay1)
 
-        self.slider2 = slicer.qMRMLSliderWidget()
-        self.LableSagittal = qt.QLabel()
-        self.LableSagittal.setText("Sagittal:")
-        self.sliderLay2 = qt.QHBoxLayout()
-        self.sliderLay2.addWidget(self.LableSagittal)
-        self.sliderLay2.addWidget(self.slider2)
-        parametersFormLayout.addRow(self.sliderLay2)
-
-        self.slider3 = slicer.qMRMLSliderWidget()
+        self.sliderCoronal = slicer.qMRMLSliderWidget()
         self.LableCoronal = qt.QLabel()
         self.LableCoronal.setText("Coronal:")
         self.sliderLay3 = qt.QHBoxLayout()
         self.sliderLay3.addWidget(self.LableCoronal)
-        self.sliderLay3.addWidget(self.slider3)
+        self.sliderLay3.addWidget(self.sliderCoronal)
         parametersFormLayout.addRow(self.sliderLay3)
+
+        self.sliderSagittal = slicer.qMRMLSliderWidget()
+        self.LableSagittal = qt.QLabel()
+        self.LableSagittal.setText("Sagittal:")
+        self.sliderLay2 = qt.QHBoxLayout()
+        self.sliderLay2.addWidget(self.LableSagittal)
+        self.sliderLay2.addWidget(self.sliderSagittal)
+        parametersFormLayout.addRow(self.sliderLay2)
 
         # Master Volume Select
         self.operationLay = qt.QHBoxLayout()
@@ -274,11 +279,24 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.masterVolumeSelector.showChildNodeTypes = False
         self.masterVolumeSelector.setMRMLScene(slicer.mrmlScene)
         self.masterVolumeSelector.setToolTip("Select Master Volume Node")
+
         self.masterVolumeLabel = qt.QLabel()
         self.masterVolumeLabel.setText("Master Volume:")
         self.operationLay.addWidget(self.masterVolumeLabel)
         self.operationLay.addWidget(self.masterVolumeSelector)
         parametersFormLayout.addRow(self.operationLay)
+
+        # view selector
+        self.viewLay = qt.QHBoxLayout()
+        self.viewSelector = ctk.ctkComboBox()
+        self.viewSelector.addItem("Compare")
+        self.viewSelector.addItem("Single")
+
+        self.viewSelLabel = qt.QLabel()
+        self.viewSelLabel.setText("Choose view:")
+        self.viewLay.addWidget(self.viewSelLabel)
+        self.viewLay.addWidget(self.viewSelector)
+        parametersFormLayout.addRow(self.viewLay)
 
         pass
 
@@ -342,32 +360,46 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slice9Logic.GetSliceNode().SetOrientationToSagittal()
         slicer.util.resetSliceViews()
 
-        self.slider1.minimum = 0
-        self.slider2.minimum = 0
-        self.slider3.minimum = 0
-
         if inputV1.GetID() and inputV2.GetID() and inputV3.GetID():
-            self.slider1.maximum = min(
-                arrayFromVolume(inputV1).shape[0],
-                arrayFromVolume(inputV2).shape[0],
-                arrayFromVolume(inputV3).shape[0]
-            )
 
-            self.slider2.maximum = min(
-                arrayFromVolume(inputV1).shape[1],
-                arrayFromVolume(inputV2).shape[1],
-                arrayFromVolume(inputV3).shape[1]
-            )
+            # Assuming Aligned
+            arr1 = arrayFromVolume(inputV1)
+            origin = inputV1.GetOrigin()
+            spacing = inputV1.GetSpacing()
+            print("Array:", arr1.shape)
+            print("origin:", origin)
+            print("spacing:", spacing)
 
-            self.slider3.maximum = min(
-                arrayFromVolume(inputV1).shape[2],
-                arrayFromVolume(inputV2).shape[2],
-                arrayFromVolume(inputV3).shape[2]
-            )
+            self.sliderAxial.minimum = 0 * spacing[2] + origin[2]
+            self.sliderCoronal.minimum = - \
+                arr1.shape[1] * spacing[1] + origin[1]
+            self.sliderSagittal.minimum = -arr1.shape[2] * \
+                spacing[0] + origin[0]
+
+            self.sliderAxial.maximum = arr1.shape[0] * spacing[2] + origin[2]
+            self.sliderCoronal.maximum = 0 * spacing[1] + origin[1]
+            self.sliderSagittal.maximum = 0 * spacing[0] + origin[0]
+
         else:
-            self.slider1.maximum = 99
+            pass
 
         pass
+
+    def viewChange(self, option):
+        option = str(option)
+        layout = slicer.qMRMLLayoutWidget()
+        layout.setMRMLScene(slicer.mrmlScene)
+
+        if (option == "Compare"):
+            layout.setLayout(
+                slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView
+            )
+            self.refreshLayOut()
+        else:
+            layout.setLayout(
+                slicer.vtkMRMLLayoutNode.SlicerLayoutTabbedSliceView
+            )
+            self.refreshLayOut()
 
     def masterVolumeChange(self, currentNode):
 
@@ -397,26 +429,26 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slice7Logic.SetSliceOffset(index)
         pass
 
-    def sideBarMoveSagittal(self, index):
+    def sideBarMoveCoronal(self, index):
         lm = slicer.app.layoutManager()
         greenLogic = lm.sliceWidget('Green').sliceLogic()
         slice5Logic = lm.sliceWidget('Slice5').sliceLogic()
         slice8Logic = lm.sliceWidget('Slice8').sliceLogic()
 
-        greenLogic.SetSliceOffset(0-index)
-        slice5Logic.SetSliceOffset(0-index)
-        slice8Logic.SetSliceOffset(0-index)
+        greenLogic.SetSliceOffset(index)
+        slice5Logic.SetSliceOffset(index)
+        slice8Logic.SetSliceOffset(index)
         pass
 
-    def sideBarMoveCoronal(self, index):
+    def sideBarMoveSagittal(self, index):
         lm = slicer.app.layoutManager()
         yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
         slice6Logic = lm.sliceWidget('Slice6').sliceLogic()
         slice9Logic = lm.sliceWidget('Slice9').sliceLogic()
 
-        yellowLogic.SetSliceOffset(0-index)
-        slice6Logic.SetSliceOffset(0-index)
-        slice9Logic.SetSliceOffset(0-index)
+        yellowLogic.SetSliceOffset(index)
+        slice6Logic.SetSliceOffset(index)
+        slice9Logic.SetSliceOffset(index)
         pass
 
     def editorEffectRegistered(self):
