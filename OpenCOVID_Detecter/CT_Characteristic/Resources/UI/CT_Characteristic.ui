@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>662</width>
-    <height>1073</height>
+    <width>628</width>
+    <height>1106</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -196,14 +196,98 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="xxy">
+           <widget class="QCheckBox" name="jxzbb">
             <property name="text">
-             <string>线性影</string>
+             <string>间歇质病变</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="fwzgb">
+            <property name="text">
+             <string>蜂窝状改变</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="fqz">
+            <property name="text">
+             <string>肺气肿</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="fdp">
+            <property name="text">
+             <string>肺大泡</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="qx">
+            <property name="text">
+             <string>气胸</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="zqgkz">
+            <property name="text">
+             <string>支气管扩张</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QVBoxLayout" name="bbsm">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="bbsm_">
+            <property name="text">
+             <string>病变数目（单选）</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="danfa">
+            <property name="text">
+             <string>单发</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="duofa24">
+            <property name="text">
+             <string>2-4，多发</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="duofa5">
+            <property name="text">
+             <string>5以上，多发</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="msx_2">
+            <property name="text">
+             <string>弥散性</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="rright">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
         <item>
          <layout class="QVBoxLayout" name="bbfb">
           <property name="topMargin">
@@ -231,9 +315,16 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="xmfj">
+           <widget class="QCheckBox" name="wz">
             <property name="text">
-             <string>胸膜附近</string>
+             <string>外周</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="sj">
+            <property name="text">
+             <string>随机</string>
             </property>
            </widget>
           </item>
@@ -273,58 +364,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="msx">
+           <widget class="QCheckBox" name="wfcl">
             <property name="text">
-             <string>弥散性</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="rright">
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <layout class="QVBoxLayout" name="bbsm">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="bbsm_">
-            <property name="text">
-             <string>病变数目（单选）</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="danfa">
-            <property name="text">
-             <string>单发</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="duofa24">
-            <property name="text">
-             <string>2-4，多发</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="duofa5">
-            <property name="text">
-             <string>5以上，多发</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="msx_2">
-            <property name="text">
-             <string>弥散性</string>
+             <string>无法测量</string>
             </property>
            </widget>
           </item>
@@ -398,145 +440,110 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QVBoxLayout" name="left_2">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
         <item>
-         <layout class="QVBoxLayout" name="wgbh">
-          <property name="topMargin">
-           <number>0</number>
+         <widget class="QCheckBox" name="xyjgzh">
+          <property name="text">
+           <string>小叶间隔增厚</string>
           </property>
-          <item>
-           <widget class="QLabel" name="wgbh_">
-            <property name="text">
-             <string>微观变化</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="xyjgzh">
-            <property name="text">
-             <string>小叶间隔增厚</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="xwzbtmd">
-            <property name="text">
-             <string>细网状不透明度</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="qttz">
-          <property name="topMargin">
-           <number>0</number>
+         <widget class="QCheckBox" name="zqgbzh">
+          <property name="text">
+           <string>支气管壁增厚</string>
           </property>
-          <item>
-           <widget class="QLabel" name="qttz_">
-            <property name="text">
-             <string>其他特征</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="zbzzwdjj">
-            <property name="text">
-             <string>主病灶之外的结节</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="dmzc">
-            <property name="text">
-             <string>动脉增粗</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="zqgbzh">
-            <property name="text">
-             <string>支气管壁增厚</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="kqzqgz">
-            <property name="text">
-             <string>空气支气管症</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="xmzh">
+          <property name="text">
+           <string>胸膜增厚</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="xqjy">
+          <property name="text">
+           <string>胸腔积液</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="kqzqgz">
+          <property name="text">
+           <string>空气支气管征</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="plsz">
+          <property name="text">
+           <string>铺路石征</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="yz_2">
+          <property name="text">
+           <string>晕征</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QVBoxLayout" name="right_2">
-        <property name="topMargin">
-         <number>0</number>
-        </property>
         <item>
-         <layout class="QVBoxLayout" name="qttz_2">
-          <property name="topMargin">
-           <number>0</number>
+         <widget class="QCheckBox" name="fyz">
+          <property name="text">
+           <string>反晕征</string>
           </property>
-          <item>
-           <widget class="QLabel" name="qttz__">
-            <property name="text">
-             <string>其他特征</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="plsz">
-            <property name="text">
-             <string>铺路石征</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="yz_2">
-            <property name="text">
-             <string>晕征</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="fyz">
-            <property name="text">
-             <string>反晕征</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="xmzh">
-            <property name="text">
-             <string>胸膜增厚</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="xqjy">
-            <property name="text">
-             <string>胸腔积液</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="zgzh">
-            <property name="text">
-             <string>纵膈增厚</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="xzxy">
-            <property name="text">
-             <string>血坠效应</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="syz">
+          <property name="text">
+           <string>树芽征</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="zjxy">
+          <property name="text">
+           <string>坠积效应</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="dfxxjj">
+          <property name="text">
+           <string>多发性小结节</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="xyzxjj">
+          <property name="text">
+           <string>小叶中心结节</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="lbjzd">
+          <property name="text">
+           <string>淋巴结肿大</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="zqgjd">
+          <property name="text">
+           <string>支气管截断</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

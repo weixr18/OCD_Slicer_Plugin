@@ -50,16 +50,25 @@ DICT = {
     "mbly": u"磨玻璃影",
     "shb": u"实变",
     "dmdy": u"低密度影",
+    "jxzbb": u"间歇质病变",
+    "fwzgb": u"蜂窝状改变",
+    "fqz": u"肺气肿",
+    "fdp": u"肺大泡",
+    "qx": u"气胸",
+    "zqgkz": u"支气管扩张",
     "xxy": u"线性影",
 
     "zy": u"中央",
     "yzqgfb": u"沿支气管分布",
     "xmfj": u"胸膜附近",
+    "wz": u"外周",
+    "sj": u"随机",
 
     "jiejie": u"<3cm结节",
     "bankuai": u"3-10cm斑块",
     "dapian": u">10cm大片",
     "msx": u"弥散性",
+    "wfcl": u"无法测量",
 
     "danfa": u"单发",
     "duofa24": u"2-4，多发",
@@ -77,23 +86,25 @@ DICT = {
     "qttz__": u"其他特征",
 
     "xyjgzh": u"小叶间隔增厚",
-    "xwzbtmd": u"细网状不透明度",
-
-    "zbzzwdjj": u"主病灶之外的结节",
-    "dmzc": u"动脉增粗",
     "zqgbzh": u"支气管壁增厚",
-    "kqzqgz": u"空气支气管症",
-
-    "zbzzwdjj": u"主病灶之外的结节",
-    "dmzc": u"动脉增粗",
-    "zqgbzh": u"支气管壁增厚",
-    "kqzqgz": u"空气支气管症",
-
+    "xmzh": u"胸膜增厚",
+    "xqjy": u"胸腔积液",
+    "kqzqgz": u"空气支气管征",
     "plsz": u"铺路石征",
     "yz_2": u"晕征",
     "fyz": u"反晕征",
-    "xmzh": u"胸膜增厚",
-    "xqjy": u"胸腔积液",
+
+    "syz": u"树芽征",
+    "zjxy": u"坠积效应",
+    "dfxxjj": u"多发性小结节",
+    "xyzxjj": u"小叶中心结节",
+    "lbjzd": u"淋巴结肿大",
+    "zqgjd": u"支气管截断",
+
+    "xwzbtmd": u"细网状不透明度",
+    "zbzzwdjj": u"主病灶之外的结节",
+    "dmzc": u"动脉增粗",
+    "kqzqgz": u"空气支气管症",
     "zgzh": u"纵膈增厚",
     "xzxy": u"血坠效应",
 }
@@ -231,138 +242,167 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
                     ZYBZ[4].setChecked(True)
                 else:
                     ZYBZ[4].setChecked(False)
-                if u"线性影" in data[u"主要病灶"][u"病变类型"]:
+                if u"间歇质病变" in data[u"主要病灶"][u"病变类型"]:
                     ZYBZ[5].setChecked(True)
                 else:
                     ZYBZ[5].setChecked(False)
 
-                if u"中央" in data[u"主要病灶"][u"病变分布"]:
+                if u"蜂窝状改变" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[6].setChecked(True)
+                else:
+                    ZYBZ[6].setChecked(False)
+                if u"肺气肿" in data[u"主要病灶"][u"病变类型"]:
                     ZYBZ[7].setChecked(True)
                 else:
                     ZYBZ[7].setChecked(False)
-                if u"沿支气管分布" in data[u"主要病灶"][u"病变分布"]:
+                if u"肺大泡" in data[u"主要病灶"][u"病变类型"]:
                     ZYBZ[8].setChecked(True)
                 else:
                     ZYBZ[8].setChecked(False)
-                if u"胸膜附近" in data[u"主要病灶"][u"病变分布"]:
+                if u"气胸" in data[u"主要病灶"][u"病变类型"]:
                     ZYBZ[9].setChecked(True)
                 else:
                     ZYBZ[9].setChecked(False)
-
-                if u"<3cm结节" in data[u"主要病灶"][u"病灶大小"]:
-                    ZYBZ[11].setChecked(True)
+                if u"支气管扩张" in data[u"主要病灶"][u"病变类型"]:
+                    ZYBZ[10].setChecked(True)
                 else:
-                    ZYBZ[11].setChecked(False)
-                if u"3-10cm斑块" in data[u"主要病灶"][u"病灶大小"]:
+                    ZYBZ[10].setChecked(False)
+
+                if u"单发" in data[u"主要病灶"][u"病变数目"]:
                     ZYBZ[12].setChecked(True)
                 else:
                     ZYBZ[12].setChecked(False)
-                if u">10cm大块" in data[u"主要病灶"][u"病灶大小"]:
+                if u"2-4，多发" in data[u"主要病灶"][u"病变数目"]:
                     ZYBZ[13].setChecked(True)
                 else:
                     ZYBZ[13].setChecked(False)
-                if u"弥散性" in data[u"主要病灶"][u"病灶大小"]:
+                if u"5以上，多发" in data[u"主要病灶"][u"病变数目"]:
                     ZYBZ[14].setChecked(True)
                 else:
                     ZYBZ[14].setChecked(False)
-
-                if u"单发" in data[u"主要病灶"][u"病变数目"]:
-                    ZYBZ[16].setChecked(True)
+                if u"弥散性2" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[15].setChecked(True)
                 else:
-                    ZYBZ[16].setChecked(False)
-                if u"2-4，多发" in data[u"主要病灶"][u"病变数目"]:
+                    ZYBZ[15].setChecked(False)
+
+                if u"中央" in data[u"主要病灶"][u"病变分布"]:
                     ZYBZ[17].setChecked(True)
                 else:
                     ZYBZ[17].setChecked(False)
-                if u"5以上，多发" in data[u"主要病灶"][u"病变数目"]:
+                if u"沿支气管分布" in data[u"主要病灶"][u"病变分布"]:
                     ZYBZ[18].setChecked(True)
                 else:
                     ZYBZ[18].setChecked(False)
-                if u"弥散性2" in data[u"主要病灶"][u"病变数目"]:
+                if u"外周" in data[u"主要病灶"][u"病变分布"]:
                     ZYBZ[19].setChecked(True)
                 else:
                     ZYBZ[19].setChecked(False)
-
-                if u"左上" in data[u"主要病灶"][u"病变位置"]:
-                    ZYBZ[21].setChecked(True)
+                if u"随机" in data[u"主要病灶"][u"病变分布"]:
+                    ZYBZ[20].setChecked(True)
                 else:
-                    ZYBZ[21].setChecked(False)
-                if u"左下" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[20].setChecked(False)
+
+                if u"<3cm结节" in data[u"主要病灶"][u"病灶大小"]:
                     ZYBZ[22].setChecked(True)
                 else:
                     ZYBZ[22].setChecked(False)
-                if u"右上" in data[u"主要病灶"][u"病变位置"]:
+                if u"3-10cm斑块" in data[u"主要病灶"][u"病灶大小"]:
                     ZYBZ[23].setChecked(True)
                 else:
                     ZYBZ[23].setChecked(False)
-                if u"右中" in data[u"主要病灶"][u"病变位置"]:
+                if u">10cm大片" in data[u"主要病灶"][u"病灶大小"]:
                     ZYBZ[24].setChecked(True)
                 else:
                     ZYBZ[24].setChecked(False)
-                if u"右下" in data[u"主要病灶"][u"病变位置"]:
+                if u"无法测量" in data[u"主要病灶"][u"病灶大小"]:
                     ZYBZ[25].setChecked(True)
                 else:
                     ZYBZ[25].setChecked(False)
+
+                if u"左上" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[27].setChecked(True)
+                else:
+                    ZYBZ[27].setChecked(False)
+                if u"左下" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[28].setChecked(True)
+                else:
+                    ZYBZ[28].setChecked(False)
+                if u"右上" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[29].setChecked(True)
+                else:
+                    ZYBZ[29].setChecked(False)
+                if u"右中" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[30].setChecked(True)
+                else:
+                    ZYBZ[30].setChecked(False)
+                if u"右下" in data[u"主要病灶"][u"病变位置"]:
+                    ZYBZ[31].setChecked(True)
+                else:
+                    ZYBZ[31].setChecked(False)
 
             # 其他征象
             QTZX = list(self.ui.qtzx.children())
 
             if True:
-                if u"小叶间隔增厚" in data[u"其他征象"][u"微观变化"]:
+                if u"小叶间隔增厚" in data[u"其他征象"]:
+                    QTZX[1].setChecked(True)
+                else:
+                    QTZX[1].setChecked(False)
+                if u"支气管壁增厚" in data[u"其他征象"]:
                     QTZX[2].setChecked(True)
                 else:
                     QTZX[2].setChecked(False)
-                if u"细网状不透明度" in data[u"其他征象"][u"微观变化"]:
+
+                if u"胸膜增厚" in data[u"其他征象"]:
                     QTZX[3].setChecked(True)
                 else:
                     QTZX[3].setChecked(False)
-
-                if u"主动脉之外的结节" in data[u"其他征象"][u"其他特征"]:
+                if u"胸腔积液" in data[u"其他征象"]:
+                    QTZX[4].setChecked(True)
+                else:
+                    QTZX[4].setChecked(False)
+                if u"空气支气管征" in data[u"其他征象"]:
                     QTZX[5].setChecked(True)
                 else:
                     QTZX[5].setChecked(False)
-                if u"动脉增粗" in data[u"其他征象"][u"其他特征"]:
+                if u"铺路石征" in data[u"其他征象"]:
                     QTZX[6].setChecked(True)
                 else:
                     QTZX[6].setChecked(False)
-                if u"支气管壁增厚" in data[u"其他征象"][u"其他特征"]:
+                if u"晕征" in data[u"其他征象"]:
                     QTZX[7].setChecked(True)
                 else:
                     QTZX[7].setChecked(False)
-                if u"空气支气管症" in data[u"其他征象"][u"其他特征"]:
+
+                if u"反晕征" in data[u"其他征象"]:
                     QTZX[8].setChecked(True)
                 else:
                     QTZX[8].setChecked(False)
-
-                if u"铺路石征" in data[u"其他征象"][u"其他特征"]:
+                if u"树芽征" in data[u"其他征象"]:
+                    QTZX[9].setChecked(True)
+                else:
+                    QTZX[9].setChecked(False)
+                if u"坠积效应" in data[u"其他征象"]:
                     QTZX[10].setChecked(True)
                 else:
                     QTZX[10].setChecked(False)
-                if u"晕征" in data[u"其他征象"][u"其他特征"]:
+
+                if u"多发性小结节" in data[u"其他征象"]:
                     QTZX[11].setChecked(True)
                 else:
                     QTZX[11].setChecked(False)
-                if u"反晕征" in data[u"其他征象"][u"其他特征"]:
+                if u"小叶中心结节" in data[u"其他征象"]:
                     QTZX[12].setChecked(True)
                 else:
                     QTZX[12].setChecked(False)
-                if u"胸膜增厚" in data[u"其他征象"][u"其他特征"]:
+                if u"淋巴结肿大" in data[u"其他征象"]:
                     QTZX[13].setChecked(True)
                 else:
                     QTZX[13].setChecked(False)
-                if u"胸腔积液" in data[u"其他征象"][u"其他特征"]:
+                if u"支气管截断" in data[u"其他征象"]:
                     QTZX[14].setChecked(True)
                 else:
                     QTZX[14].setChecked(False)
-
-                if u"纵膈增厚" in data[u"其他征象"][u"其他特征"]:
-                    QTZX[15].setChecked(True)
-                else:
-                    QTZX[15].setChecked(False)
-                if u"血坠效应" in data[u"其他征象"][u"其他特征"]:
-                    QTZX[16].setChecked(True)
-                else:
-                    QTZX[16].setChecked(False)
 
             # 诊断和把握程度
             YPZD = list(self.ui.ypzd.children())
@@ -405,46 +445,52 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             ZYBZ[3].setChecked(False)
             ZYBZ[4].setChecked(False)
             ZYBZ[5].setChecked(False)
-
+            ZYBZ[6].setChecked(False)
             ZYBZ[7].setChecked(False)
             ZYBZ[8].setChecked(False)
             ZYBZ[9].setChecked(False)
+            ZYBZ[10].setChecked(False)
 
-            ZYBZ[11].setChecked(False)
             ZYBZ[12].setChecked(False)
             ZYBZ[13].setChecked(False)
             ZYBZ[14].setChecked(False)
+            ZYBZ[15].setChecked(False)
 
-            ZYBZ[16].setChecked(False)
             ZYBZ[17].setChecked(False)
             ZYBZ[18].setChecked(False)
             ZYBZ[19].setChecked(False)
+            ZYBZ[20].setChecked(False)
 
-            ZYBZ[21].setChecked(False)
             ZYBZ[22].setChecked(False)
             ZYBZ[23].setChecked(False)
             ZYBZ[24].setChecked(False)
             ZYBZ[25].setChecked(False)
 
+            ZYBZ[27].setChecked(False)
+            ZYBZ[28].setChecked(False)
+            ZYBZ[29].setChecked(False)
+            ZYBZ[30].setChecked(False)
+            ZYBZ[31].setChecked(False)
+
             ################################################
 
             QTZX = list(self.ui.qtzx.children())
 
+            QTZX[1].setChecked(False)
             QTZX[2].setChecked(False)
             QTZX[3].setChecked(False)
-
+            QTZX[4].setChecked(False)
             QTZX[5].setChecked(False)
             QTZX[6].setChecked(False)
             QTZX[7].setChecked(False)
-            QTZX[8].setChecked(False)
 
+            QTZX[8].setChecked(False)
+            QTZX[9].setChecked(False)
             QTZX[10].setChecked(False)
             QTZX[11].setChecked(False)
             QTZX[12].setChecked(False)
             QTZX[13].setChecked(False)
             QTZX[14].setChecked(False)
-            QTZX[15].setChecked(False)
-            QTZX[16].setChecked(False)
 
             ################################################
 
@@ -481,15 +527,10 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
 
         # 其他征象
         QTZX = list(self.ui.qtzx.children())
-        n_QTZX = dict()
-        cur_list = []
+        n_QTZX = list()
         for z in QTZX:
-            if str(z.__class__) == "<class 'PythonQt.QtGui.QLabel'>":
-                if DICT[z.objectName] not in n_QTZX:
-                    n_QTZX[DICT[z.objectName]] = []
-                cur_list = n_QTZX[DICT[z.objectName]]
-            elif str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
-                cur_list.append(DICT[z.objectName])
+            if str(z.__class__) == "<class 'PythonQt.QtGui.QCheckBox'>" and z.checked:
+                n_QTZX.append(DICT[z.objectName])
 
         # 诊断和把握程度
         YPZD = list(self.ui.ypzd.children())
@@ -521,9 +562,9 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
             ensure_ascii=False
         )
 
-        import sys
+        #import sys
         # reload sys
-        sys.setdefaultencoding('utf-8')
+        # sys.setdefaultencoding('utf-8')
 
         if hasattr(self, "txt"):
             txt_path = self.fileDirSelector.currentPath + '/result.txt'
@@ -547,114 +588,3 @@ class CT_CharacteristicWidget(ScriptedLoadableModuleWidget):
         pass
 
     pass
-
-#
-# CT_CharacteristicLogic
-#
-
-
-class CT_CharacteristicLogic(ScriptedLoadableModuleLogic):
-
-    def hasImageData(self, volumeNode):
-        """This is an example logic method that
-        returns true if the passed in volume
-        node has valid image data
-        """
-        if not volumeNode:
-            logging.debug('hasImageData failed: no volume node')
-            return False
-        if volumeNode.GetImageData() is None:
-            logging.debug('hasImageData failed: no image data in volume node')
-            return False
-        return True
-
-    def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
-        """Validates if the output is not the same as input
-        """
-        if not inputVolumeNode:
-            logging.debug(
-                'isValidInputOutputData failed: no input volume node defined')
-            return False
-        if not outputVolumeNode:
-            logging.debug(
-                'isValidInputOutputData failed: no output volume node defined')
-            return False
-        if inputVolumeNode.GetID() == outputVolumeNode.GetID():
-            logging.debug(
-                'isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.')
-            return False
-        return True
-
-    def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-        """
-        Run the actual algorithm
-        """
-
-        if not self.isValidInputOutputData(inputVolume, outputVolume):
-            slicer.util.errorDisplay(
-                'Input volume is the same as output volume. Choose a different output volume.')
-            return False
-
-        logging.info('Processing started')
-
-        # Compute the thresholded output volume using the Threshold Scalar Volume CLI module
-        cliParams = {'InputVolume': inputVolume.GetID(), 'OutputVolume': outputVolume.GetID(
-        ), 'ThresholdValue': imageThreshold, 'ThresholdType': 'Above'}
-        cliNode = slicer.cli.run(
-            slicer.modules.thresholdscalarvolume, None, cliParams, wait_for_completion=True)
-
-        # Capture screenshot
-        if enableScreenshots:
-            self.takeScreenshot(
-                'CT_CharacteristicTest-Start', 'MyScreenshot', -1)
-
-        logging.info('Processing completed')
-
-        return True
-
-
-class CT_CharacteristicTest(ScriptedLoadableModuleTest):
-    """
-    This is the test case for your scripted module.
-    Uses ScriptedLoadableModuleTest base class, available at:
-    https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-    """
-
-    def setUp(self):
-        """ Do whatever is needed to reset the state - typically a scene clear will be enough.
-        """
-        slicer.mrmlScene.Clear(0)
-
-    def runTest(self):
-        """Run as few or as many tests as needed here.
-        """
-        self.setUp()
-        self.test_CT_Characteristic1()
-
-    def test_CT_Characteristic1(self):
-        """ Ideally you should have several levels of tests.  At the lowest level
-        tests should exercise the functionality of the logic with different inputs
-        (both valid and invalid).  At higher levels your tests should emulate the
-        way the user would interact with your code and confirm that it still works
-        the way you intended.
-        One of the most important features of the tests is that it should alert other
-        developers when their changes will have an impact on the behavior of your
-        module.  For example, if a developer removes a feature that you depend on,
-        your test should break so they know that the feature is needed.
-        """
-
-        self.delayDisplay("Starting the test")
-        #
-        # first, get some data
-        #
-        import SampleData
-        SampleData.downloadFromURL(
-            nodeNames='FA',
-            fileNames='FA.nrrd',
-            uris='http://slicer.kitware.com/midas3/download?items=5767')
-        self.delayDisplay('Finished with download and loading')
-
-        volumeNode = slicer.util.getNode(pattern="FA")
-        logic = CT_CharacteristicLogic()
-        self.assertIsNotNone(logic.hasImageData(volumeNode))
-        self.delayDisplay('Test passed!')

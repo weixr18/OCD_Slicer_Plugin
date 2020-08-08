@@ -13,6 +13,10 @@ from slicer.util import VTKObservationMixin, arrayFromVolume
 # CT_Annotate
 #
 
+# TODO: Hide segment showing in other views (bug)
+# TODO: Add view selector
+# TODO: Zooming synchronization
+
 
 class CT_Annotate(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
@@ -59,7 +63,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.setPanelLayOut()
 
         #
-        # Segment editor widget
+        # Draw Segment editor widget
         #
         import qSlicerSegmentationsModuleWidgetsPythonQt
         self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
@@ -67,6 +71,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Set parameter node first so that the automatic selections made when the scene is set are saved
         self.selectParameterNode()
         self.editor.setMRMLScene(slicer.mrmlScene)
+        # set selectors invisible
+        self.editor.setAutoShowMasterVolumeNode(False)
+        self.editor.setMasterVolumeNodeSelectorVisible(False)
+        self.editor.setSegmentationNodeSelectorVisible(False)
         self.layout.addWidget(self.editor)
 
         # Observe editor effect registrations to make sure that any effects that are registered
@@ -88,16 +96,6 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
         #
-        # Set display layout
-        #
-        layout = slicer.qMRMLLayoutWidget()
-        layout.setMRMLScene(slicer.mrmlScene)
-        layout.setLayout(
-            slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView)
-
-        self.refreshLayOut()
-
-        #
         # Connections
         #
         self.inputSelectorV1.connect(
@@ -114,23 +112,29 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.slider3.connect("valueChanged(double)", self.sideBarMoveCoronal)
 
         #
-        # refresh
+        # Other Initials
         #
-        self.editor.setAutoShowMasterVolumeNode(False)
-        self.editor.setMasterVolumeNodeSelectorVisible(False)
-        self.editor.setSegmentationNodeSelectorVisible(False)
 
-        # TODO: reset the volume nodes
+        # Set display layout
+        layout = slicer.qMRMLLayoutWidget()
+        layout.setMRMLScene(slicer.mrmlScene)
+        layout.setLayout(
+            slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView)
+        self.refreshLayOut()
+
+        # Select the master volume node
         self.masterVolumeChange(
             self.masterVolumeSelector.currentNode()
         )
 
         # debug part
+        # print(self.editor.mouseTracking)
+        # print(dir(slicer.app.layoutManager().sliceWidget('Red')))
 
     def setPanelLayOut(self):
         """panel layout setup"""
         parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-        parametersCollapsibleButton.text = "Parameters"
+        parametersCollapsibleButton.text = "Settings"
         self.layout.addWidget(parametersCollapsibleButton)
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
@@ -258,7 +262,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.sliderLay3.addWidget(self.slider3)
         parametersFormLayout.addRow(self.sliderLay3)
 
-        # Operation Select
+        # Master Volume Select
         self.operationLay = qt.QHBoxLayout()
         self.masterVolumeSelector = slicer.qMRMLNodeComboBox()
         self.masterVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
