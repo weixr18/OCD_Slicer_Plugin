@@ -1,20 +1,21 @@
 import os
+import logging
 import unittest
+
 import vtk
 import qt
 import ctk
 import slicer
-from slicer.ScriptedLoadableModule import *
-import logging
 
+from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin, arrayFromVolume
+from qt import QMessageBox
 
 #
 # CT_Annotate
 #
 
 # TODO: Hide segment showing in other views (bug)
-# TODO: Add view selector
 # TODO: Zooming synchronization
 
 
@@ -95,15 +96,24 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.addObserver(
             slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
+        self.editorEnableJudge()
+
         #
         # Connections
         #
         self.inputSelectorV1.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
+            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
         self.inputSelectorV2.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
+            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
         self.inputSelectorV3.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
+            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
+
+        self.inputSelectorS1.connect(
+            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
+        self.inputSelectorS2.connect(
+            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
+        self.inputSelectorS3.connect(
+            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
 
         self.sliderAxial.connect("valueChanged(double)", self.sideBarMoveAxial)
         self.sliderCoronal.connect(
@@ -126,16 +136,50 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         layout.setMRMLScene(slicer.mrmlScene)
         layout.setLayout(
             slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView)
-        self.refreshLayOut()
+        self.refreshViewLayOut()
 
         # Select the master volume node
-        self.masterVolumeChange(
-            self.masterVolumeSelector.currentNode()
-        )
+        volumeNodes = slicer.util.getNodesByClass("vtkMRMLScalarVolumeNode")
+        for n in volumeNodes:
+            # in order to prevent a bug that the segment could not be added.
+            self.masterVolumeChange(n)
+
+        try:
+            self.masterVolumeChange(
+                self.masterVolumeSelector.currentNode()
+            )
+        except Exception as e:
+            if self.masterVolumeSelector.currentNode() is None\
+                    or self.inputSelectorS1.currentNode() is None\
+                    or self.inputSelectorS2.currentNode() is None\
+                    or self.inputSelectorS3.currentNode() is None:
+
+                QMessageBox.about(
+                    None, "Notice", "No data has been added yet."
+                )
 
         # debug part
-        # print(self.editor.mouseTracking)
-        # print(dir(slicer.app.layoutManager().sliceWidget('Red')))
+
+    def editorEnableJudge(self):
+        old_flag = self.editor.isEnabled()
+        flag = self.inputSelectorS1.currentNode() != self.inputSelectorS2.currentNode()\
+            and self.inputSelectorS2.currentNode() != self.inputSelectorS3.currentNode()\
+            and self.inputSelectorS3.currentNode() != self.inputSelectorS1.currentNode()\
+            and self.inputSelectorV1.currentNode() != self.inputSelectorV2.currentNode()\
+            and self.inputSelectorV2.currentNode() != self.inputSelectorV3.currentNode()\
+            and self.inputSelectorV3.currentNode() != self.inputSelectorV1.currentNode()
+        self.editor.setEnabled(flag)
+
+        if not old_flag and flag:
+            volumeNodes = slicer.util.getNodesByClass(
+                "vtkMRMLScalarVolumeNode"
+            )
+            for n in volumeNodes:
+                self.masterVolumeChange(n)
+            for n in volumeNodes:
+                self.masterVolumeChange(n)
+
+        pass
 
     def setSettingsLayOut(self):
         """settings layout setup"""
@@ -301,8 +345,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         pass
 
-    def refreshLayOut(self):
+    def refreshViewLayOut(self):
         """Layout refresh"""
+
+        self.editorEnableJudge()
 
         inputV1 = self.inputSelectorV1.currentNode()
         inputV2 = self.inputSelectorV2.currentNode()
@@ -439,21 +485,20 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             layout.setLayout(
                 slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView
             )
-            self.refreshLayOut()
+            self.refreshViewLayOut()
         else:
             layout.setLayout(
                 slicer.vtkMRMLLayoutNode.SlicerLayoutTabbedSliceView
             )
-            self.refreshLayOut()
+            self.refreshViewLayOut()
 
     def masterVolumeChange(self, currentNode):
         """set the master volume for segmentation"""
 
         self.editor.setMasterVolumeNode(currentNode)
-
         nodeID = currentNode.GetID()
-        if self.inputSelectorV1.currentNodeID == nodeID:
 
+        if self.inputSelectorV1.currentNodeID == nodeID:
             self.editor.setSegmentationNode(
                 self.inputSelectorS1.currentNode()
             )
