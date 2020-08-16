@@ -54,7 +54,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.editor = None
 
     def setup(self):
-        """ui setup"""
+        """UI setup"""
         ScriptedLoadableModuleWidget.setup(self)
 
         #
@@ -104,14 +104,15 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
         self.inputSelectorV3.connect(
             "currentNodeChanged(vtkMRMLNode*)", self.refreshLayOut)
-        self.masterVolumeSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.masterVolumeChange)
 
         self.sliderAxial.connect("valueChanged(double)", self.sideBarMoveAxial)
         self.sliderCoronal.connect(
             "valueChanged(double)", self.sideBarMoveCoronal)
         self.sliderSagittal.connect(
             "valueChanged(double)", self.sideBarMoveSagittal)
+
+        self.masterVolumeSelector.connect(
+            "currentNodeChanged(vtkMRMLNode*)", self.masterVolumeChange)
 
         self.viewSelector.connect(
             "currentTextChanged(QString)", self.viewChange)
@@ -137,7 +138,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # print(dir(slicer.app.layoutManager().sliceWidget('Red')))
 
     def setSettingsLayOut(self):
-        """panel layout setup"""
+        """settings layout setup"""
         parametersCollapsibleButton = ctk.ctkCollapsibleButton()
         parametersCollapsibleButton.text = "Settings"
         self.layout.addWidget(parametersCollapsibleButton)
@@ -301,10 +302,15 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
 
     def refreshLayOut(self):
+        """Layout refresh"""
 
         inputV1 = self.inputSelectorV1.currentNode()
         inputV2 = self.inputSelectorV2.currentNode()
         inputV3 = self.inputSelectorV3.currentNode()
+
+        inputS1 = self.inputSelectorS1.currentNode()
+        inputS2 = self.inputSelectorS2.currentNode()
+        inputS3 = self.inputSelectorS3.currentNode()
 
         # bind logic to volumes
         lm = slicer.app.layoutManager()
@@ -320,7 +326,8 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slice8Logic = lm.sliceWidget('Slice8').sliceLogic()
         slice9Logic = lm.sliceWidget('Slice9').sliceLogic()
 
-        if (inputV1.GetID()):
+        # V1
+        if (inputV1 != None and inputV1.GetID()):
             redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
                 inputV1.GetID()
             )
@@ -331,7 +338,8 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 inputV1.GetID()
             )
 
-        if (inputV2.GetID()):
+        # V2
+        if (inputV2 != None and inputV2.GetID()):
             slice4Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
                 inputV2.GetID()
             )
@@ -343,9 +351,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             slice6Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
                 inputV2.GetID()
             )
-        slice6Logic.GetSliceNode().SetOrientationToSagittal()
+            slice6Logic.GetSliceNode().SetOrientationToSagittal()
 
-        if (inputV3.GetID()):
+        # V3
+        if (inputV3 != None and inputV3.GetID()):
             slice7Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
                 inputV3.GetID()
             )
@@ -357,18 +366,52 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             slice9Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
                 inputV3.GetID()
             )
-        slice9Logic.GetSliceNode().SetOrientationToSagittal()
+            slice9Logic.GetSliceNode().SetOrientationToSagittal()
+
+        # S1
+        if (inputS1 != None and inputS1.GetID()):
+            redLogic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS1.GetID()
+            )
+            yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS1.GetID()
+            )
+            greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS1.GetID()
+            )
+
+        # S2
+        if (inputS2 != None and inputS2.GetID()):
+            slice4Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS2.GetID()
+            )
+            slice5Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS2.GetID()
+            )
+            slice6Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS2.GetID()
+            )
+
+        # S3
+        if (inputS3 != None and inputS3.GetID()):
+            slice7Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS3.GetID()
+            )
+            slice8Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS3.GetID()
+            )
+            slice9Logic.GetSliceCompositeNode().SetForegroundVolumeID(
+                inputS3.GetID()
+            )
+
         slicer.util.resetSliceViews()
 
-        if inputV1.GetID() and inputV2.GetID() and inputV3.GetID():
+        if inputV1 and inputV2 and inputV3 and inputV1.GetID() and inputV2.GetID() and inputV3.GetID():
 
             # Assuming Aligned
             arr1 = arrayFromVolume(inputV1)
             origin = inputV1.GetOrigin()
             spacing = inputV1.GetSpacing()
-            print("Array:", arr1.shape)
-            print("origin:", origin)
-            print("spacing:", spacing)
 
             self.sliderAxial.minimum = 0 * spacing[2] + origin[2]
             self.sliderCoronal.minimum = - \
@@ -376,7 +419,8 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.sliderSagittal.minimum = -arr1.shape[2] * \
                 spacing[0] + origin[0]
 
-            self.sliderAxial.maximum = arr1.shape[0] * spacing[2] + origin[2]
+            self.sliderAxial.maximum = arr1.shape[0] * \
+                spacing[2] + origin[2]
             self.sliderCoronal.maximum = 0 * spacing[1] + origin[1]
             self.sliderSagittal.maximum = 0 * spacing[0] + origin[0]
 
@@ -386,6 +430,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
 
     def viewChange(self, option):
+        """change the view to 3*3 or only one"""
         option = str(option)
         layout = slicer.qMRMLLayoutWidget()
         layout.setMRMLScene(slicer.mrmlScene)
@@ -402,9 +447,13 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.refreshLayOut()
 
     def masterVolumeChange(self, currentNode):
+        """set the master volume for segmentation"""
+
+        self.editor.setMasterVolumeNode(currentNode)
 
         nodeID = currentNode.GetID()
         if self.inputSelectorV1.currentNodeID == nodeID:
+
             self.editor.setSegmentationNode(
                 self.inputSelectorS1.currentNode()
             )
@@ -419,6 +468,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
 
     def sideBarMoveAxial(self, index):
+        """Axial move"""
         lm = slicer.app.layoutManager()
         redLogic = lm.sliceWidget('Red').sliceLogic()
         slice4Logic = lm.sliceWidget('Slice4').sliceLogic()
@@ -430,6 +480,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
 
     def sideBarMoveCoronal(self, index):
+        """Coronal move"""
         lm = slicer.app.layoutManager()
         greenLogic = lm.sliceWidget('Green').sliceLogic()
         slice5Logic = lm.sliceWidget('Slice5').sliceLogic()
@@ -441,6 +492,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
 
     def sideBarMoveSagittal(self, index):
+        """Sagittal move"""
         lm = slicer.app.layoutManager()
         yellowLogic = lm.sliceWidget('Yellow').sliceLogic()
         slice6Logic = lm.sliceWidget('Slice6').sliceLogic()
@@ -450,6 +502,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slice6Logic.SetSliceOffset(index)
         slice9Logic.SetSliceOffset(index)
         pass
+
+    """
+    DON'T EDIT CODE BELOW !!
+    """
 
     def editorEffectRegistered(self):
         self.editor.updateEffectList()
