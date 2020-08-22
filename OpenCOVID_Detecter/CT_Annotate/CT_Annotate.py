@@ -10,6 +10,7 @@ import slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin, arrayFromVolume
 from qt import QMessageBox
+from slicer import qSlicerSaveDataDialog
 
 #
 # CT_Annotate
@@ -17,6 +18,7 @@ from qt import QMessageBox
 
 # TODO: Hide segment showing in other views (bug)
 # TODO: Zooming synchronization
+# TODO: Save Data Button
 
 
 class CT_Annotate(ScriptedLoadableModule):
@@ -29,12 +31,15 @@ class CT_Annotate(ScriptedLoadableModule):
         self.parent.title = "CT_Annotate"
         self.parent.categories = ["COVID Research Tools"]
         self.parent.dependencies = []
-        self.parent.contributors = ["XinRan Wei, Kaiwen Men, PeiYi Han, BoLun Liu, \
-                                    WeiXiang Chen, (Tsinghua Univ.)"]
+        self.parent.contributors = [
+            "XinRan Wei, Kaiwen Men, PeiYi Han, BoLun Liu, \
+                                    WeiXiang Chen, (Tsinghua Univ.)"
+        ]
         self.parent.helpText = ""
         self.parent.helpText += self.getDefaultModuleDocumentationLink()
         # replace with organization, grant and thanks.
         self.parent.acknowledgementText = ""
+
 
 #
 # CT_AnnotateWidget
@@ -67,7 +72,8 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Draw segment editor widget
         #
         import qSlicerSegmentationsModuleWidgetsPythonQt
-        self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
+        self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget(
+        )
         self.editor.setMaximumNumberOfUndoStates(10)
         # Set parameter node first so that the automatic selections made when the scene is set are saved
         self.selectParameterNode()
@@ -83,49 +89,49 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # as startup module, additional effects are registered after the segment editor widget is created.
         import qSlicerSegmentationsEditorEffectsPythonQt
         # TODO: For some reason the instance() function cannot be called as a class function although it's static
-        factory = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorEffectFactory()
+        factory = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorEffectFactory(
+        )
         self.effectFactorySingleton = factory.instance()
-        self.effectFactorySingleton.connect(
-            'effectRegistered(QString)', self.editorEffectRegistered)
+        self.effectFactorySingleton.connect('effectRegistered(QString)',
+                                            self.editorEffectRegistered)
 
         # Connect observers to scene events
-        self.addObserver(
-            slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
-        self.addObserver(slicer.mrmlScene,
-                         slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
-        self.addObserver(
-            slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
+        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent,
+                         self.onSceneStartClose)
+        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent,
+                         self.onSceneEndClose)
+        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent,
+                         self.onSceneEndImport)
 
         self.editorEnableJudge()
 
         #
         # Connections
         #
-        self.inputSelectorV1.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
-        self.inputSelectorV2.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
-        self.inputSelectorV3.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.refreshViewLayOut)
+        self.inputSelectorV1.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.refreshViewLayOut)
+        self.inputSelectorV2.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.refreshViewLayOut)
+        self.inputSelectorV3.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.refreshViewLayOut)
 
-        self.inputSelectorS1.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
-        self.inputSelectorS2.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
-        self.inputSelectorS3.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.editorEnableJudge)
+        self.inputSelectorS1.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.editorEnableJudge)
+        self.inputSelectorS2.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.editorEnableJudge)
+        self.inputSelectorS3.connect("currentNodeChanged(vtkMRMLNode*)",
+                                     self.editorEnableJudge)
 
         self.sliderAxial.connect("valueChanged(double)", self.sideBarMoveAxial)
-        self.sliderCoronal.connect(
-            "valueChanged(double)", self.sideBarMoveCoronal)
-        self.sliderSagittal.connect(
-            "valueChanged(double)", self.sideBarMoveSagittal)
-
-        self.masterVolumeSelector.connect(
-            "currentNodeChanged(vtkMRMLNode*)", self.masterVolumeChange)
-
-        self.viewSelector.connect(
-            "currentTextChanged(QString)", self.viewChange)
+        self.sliderCoronal.connect("valueChanged(double)",
+                                   self.sideBarMoveCoronal)
+        self.sliderSagittal.connect("valueChanged(double)",
+                                    self.sideBarMoveSagittal)
+        self.masterVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)",
+                                          self.masterVolumeChange)
+        self.viewSelector.connect("currentTextChanged(QString)",
+                                  self.viewChange)
+        self.saveButton.connect("clicked()", self.saveSegments)
 
         #
         # Other Initials
@@ -145,22 +151,20 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.masterVolumeChange(n)
 
         try:
-            self.masterVolumeChange(
-                self.masterVolumeSelector.currentNode()
-            )
+            self.masterVolumeChange(self.masterVolumeSelector.currentNode())
         except Exception as e:
             if self.masterVolumeSelector.currentNode() is None\
                     or self.inputSelectorS1.currentNode() is None\
                     or self.inputSelectorS2.currentNode() is None\
                     or self.inputSelectorS3.currentNode() is None:
-
-                QMessageBox.about(
-                    None, "Notice", "No data has been added yet."
-                )
+                QMessageBox.about(None, "Notice",
+                                  "No data has been added yet.")
+            pass
 
         # debug part
 
     def editorEnableJudge(self):
+        """judge if the editor is useable."""
         old_flag = self.editor.isEnabled()
         flag = self.inputSelectorS1.currentNode() != self.inputSelectorS2.currentNode()\
             and self.inputSelectorS2.currentNode() != self.inputSelectorS3.currentNode()\
@@ -172,8 +176,7 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if not old_flag and flag:
             volumeNodes = slicer.util.getNodesByClass(
-                "vtkMRMLScalarVolumeNode"
-            )
+                "vtkMRMLScalarVolumeNode")
             for n in volumeNodes:
                 self.masterVolumeChange(n)
             for n in volumeNodes:
@@ -339,8 +342,17 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.viewSelLabel = qt.QLabel()
         self.viewSelLabel.setText("Choose view:")
+
+        self.saveButton = qt.QPushButton()
+        self.saveButton.setText("Save")
+        self.saveButton.setStyleSheet("font-size: 24px;\
+             background-color: rgb(69, 165, 96)")
+        self.saveButton.setMaximumWidth(100)
+        self.saveButton.setMinimumHeight(40)
+
         self.viewLay.addWidget(self.viewSelLabel)
         self.viewLay.addWidget(self.viewSelector)
+        self.viewLay.addWidget(self.saveButton)
         parametersFormLayout.addRow(self.viewLay)
 
         pass
@@ -375,84 +387,67 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # V1
         if (inputV1 != None and inputV1.GetID()):
             redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV1.GetID()
-            )
+                inputV1.GetID())
             yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV1.GetID()
-            )
+                inputV1.GetID())
             greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV1.GetID()
-            )
+                inputV1.GetID())
 
         # V2
         if (inputV2 != None and inputV2.GetID()):
             slice4Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV2.GetID()
-            )
+                inputV2.GetID())
             slice4Logic.GetSliceNode().SetOrientationToAxial()
             slice5Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV2.GetID()
-            )
+                inputV2.GetID())
             slice5Logic.GetSliceNode().SetOrientationToCoronal()
             slice6Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV2.GetID()
-            )
+                inputV2.GetID())
             slice6Logic.GetSliceNode().SetOrientationToSagittal()
 
         # V3
         if (inputV3 != None and inputV3.GetID()):
             slice7Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV3.GetID()
-            )
+                inputV3.GetID())
             slice7Logic.GetSliceNode().SetOrientationToAxial()
             slice8Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV3.GetID()
-            )
+                inputV3.GetID())
             slice8Logic.GetSliceNode().SetOrientationToCoronal()
             slice9Logic.GetSliceCompositeNode().SetBackgroundVolumeID(
-                inputV3.GetID()
-            )
+                inputV3.GetID())
             slice9Logic.GetSliceNode().SetOrientationToSagittal()
 
         # S1
         if (inputS1 != None and inputS1.GetID()):
             redLogic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS1.GetID()
-            )
+                inputS1.GetID())
             yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS1.GetID()
-            )
+                inputS1.GetID())
             greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS1.GetID()
-            )
+                inputS1.GetID())
 
         # S2
         if (inputS2 != None and inputS2.GetID()):
             slice4Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS2.GetID()
-            )
+                inputS2.GetID())
             slice5Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS2.GetID()
-            )
+                inputS2.GetID())
             slice6Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS2.GetID()
-            )
+                inputS2.GetID())
 
         # S3
         if (inputS3 != None and inputS3.GetID()):
             slice7Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS3.GetID()
-            )
+                inputS3.GetID())
             slice8Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS3.GetID()
-            )
+                inputS3.GetID())
             slice9Logic.GetSliceCompositeNode().SetForegroundVolumeID(
-                inputS3.GetID()
-            )
+                inputS3.GetID())
 
         slicer.util.resetSliceViews()
 
-        if inputV1 and inputV2 and inputV3 and inputV1.GetID() and inputV2.GetID() and inputV3.GetID():
+        if inputV1 and inputV2 and inputV3 and inputV1.GetID(
+        ) and inputV2.GetID() and inputV3.GetID():
 
             # Assuming Aligned
             arr1 = arrayFromVolume(inputV1)
@@ -483,13 +478,11 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if (option == "Compare"):
             layout.setLayout(
-                slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView
-            )
+                slicer.vtkMRMLLayoutNode.SlicerLayoutThreeByThreeSliceView)
             self.refreshViewLayOut()
         else:
             layout.setLayout(
-                slicer.vtkMRMLLayoutNode.SlicerLayoutTabbedSliceView
-            )
+                slicer.vtkMRMLLayoutNode.SlicerLayoutTabbedSliceView)
             self.refreshViewLayOut()
 
     def masterVolumeChange(self, currentNode):
@@ -499,17 +492,11 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         nodeID = currentNode.GetID()
 
         if self.inputSelectorV1.currentNodeID == nodeID:
-            self.editor.setSegmentationNode(
-                self.inputSelectorS1.currentNode()
-            )
+            self.editor.setSegmentationNode(self.inputSelectorS1.currentNode())
         elif self.inputSelectorV2.currentNodeID == nodeID:
-            self.editor.setSegmentationNode(
-                self.inputSelectorS2.currentNode()
-            )
+            self.editor.setSegmentationNode(self.inputSelectorS2.currentNode())
         elif self.inputSelectorV3.currentNodeID == nodeID:
-            self.editor.setSegmentationNode(
-                self.inputSelectorS3.currentNode()
-            )
+            self.editor.setSegmentationNode(self.inputSelectorS3.currentNode())
         pass
 
     def sideBarMoveAxial(self, index):
@@ -546,6 +533,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         yellowLogic.SetSliceOffset(index)
         slice6Logic.SetSliceOffset(index)
         slice9Logic.SetSliceOffset(index)
+        pass
+
+    def saveSegments(self):
+        slicer.app.ioManager().openSaveDataDialog()
         pass
 
     """
@@ -597,8 +588,10 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """Runs whenever the module is reopened
         """
         if self.editor.turnOffLightboxes():
-            slicer.util.warningDisplay('Segment Editor is not compatible with slice viewers in light box mode.'
-                                       'Views are being reset.', windowTitle='Segment Editor')
+            slicer.util.warningDisplay(
+                'Segment Editor is not compatible with slice viewers in light box mode.'
+                'Views are being reset.',
+                windowTitle='Segment Editor')
 
         # Allow switching between effects and selected segment using keyboard shortcuts
         self.editor.installKeyboardShortcuts()
@@ -641,8 +634,9 @@ class CT_AnnotateWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def cleanup(self):
         self.removeObservers()
-        self.effectFactorySingleton.disconnect(
-            'effectRegistered(QString)', self.editorEffectRegistered)
+        self.effectFactorySingleton.disconnect('effectRegistered(QString)',
+                                               self.editorEffectRegistered)
+
 
 #
 # CT_AnnotateLogic
@@ -681,27 +675,39 @@ class CT_AnnotateLogic(ScriptedLoadableModuleLogic):
             return False
         if inputVolumeNode.GetID() == outputVolumeNode.GetID():
             logging.debug(
-                'isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.')
+                'isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.'
+            )
             return False
         return True
 
-    def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
+    def run(self,
+            inputVolume,
+            outputVolume,
+            imageThreshold,
+            enableScreenshots=0):
         """
         Run the actual algorithm
         """
 
         if not self.isValidInputOutputData(inputVolume, outputVolume):
             slicer.util.errorDisplay(
-                'Input volume is the same as output volume. Choose a different output volume.')
+                'Input volume is the same as output volume. Choose a different output volume.'
+            )
             return False
 
         logging.info('Processing started')
 
         # Compute the thresholded output volume using the Threshold Scalar Volume CLI module
-        cliParams = {'InputVolume': inputVolume.GetID(), 'OutputVolume': outputVolume.GetID(
-        ), 'ThresholdValue': imageThreshold, 'ThresholdType': 'Above'}
-        cliNode = slicer.cli.run(
-            slicer.modules.thresholdscalarvolume, None, cliParams, wait_for_completion=True)
+        cliParams = {
+            'InputVolume': inputVolume.GetID(),
+            'OutputVolume': outputVolume.GetID(),
+            'ThresholdValue': imageThreshold,
+            'ThresholdType': 'Above'
+        }
+        cliNode = slicer.cli.run(slicer.modules.thresholdscalarvolume,
+                                 None,
+                                 cliParams,
+                                 wait_for_completion=True)
 
         # Capture screenshot
         if enableScreenshots:
